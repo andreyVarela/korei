@@ -15,12 +15,12 @@ class Settings(BaseSettings):
     timezone: str = "America/Costa_Rica"
     
     # Supabase
-    supabase_url: str = "https://ejemplo.supabase.co"
-    supabase_anon_key: str = "ejemplo_key"
-    supabase_service_key: str = "ejemplo_key"
+    supabase_url: str
+    supabase_anon_key: str  
+    supabase_service_key: str
     
     # WhatsApp (WAHA)
-    waha_api_url: str = "http://localhost:3000"
+    waha_api_url: str
     waha_api_key: str
     waha_session: str = "default"
     
