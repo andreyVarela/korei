@@ -1,0 +1,24 @@
+# Core
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic-settings==2.10.1
+python-dotenv==1.0.1
+python-multipart==0.0.6
+
+# Base de datos
+supabase==2.3.4
+
+# IA - Solo Gemini
+google-generativeai==0.3.2
+
+# HTTP Async
+aiohttp==3.9.3
+aiofiles==23.2.1
+
+# Procesamiento multimedia
+pillow==10.2.0
+pydub==0.25.1
+
+# Utilidades
+pytz==2024.1
+loguru==0.7.2
