@@ -160,16 +160,42 @@ class GeminiService:
     def _build_prompt(self, message: str, user_context: Dict[str, Any], 
                      current_time: datetime) -> str:
         """Construye prompt para texto"""
-        return f"""
-        Eres Korei, un asistente experto en gestión de tareas y finanzas personales.
         
-        CONTEXTO:
-        - Usuario: {user_context.get('name', 'Usuario')}
+        # Extraer información del perfil
+        profile = user_context.get('profile', {})
+        name = user_context.get('name', 'Usuario')
+        occupation = profile.get('occupation', '')
+        hobbies = profile.get('hobbies', [])
+        context_summary = profile.get('context_summary', '')
+        
+        # Construir contexto personal
+        personal_context = ""
+        if occupation:
+            personal_context += f"- Ocupación: {occupation}\n        "
+        if hobbies:
+            personal_context += f"- Hobbies: {', '.join(hobbies)}\n        "
+        if context_summary:
+            personal_context += f"- Contexto personal: {context_summary}\n        "
+        
+        return f"""
+        Eres Korei, un asistente personal inteligente que conoce a {name} y se adapta a su estilo de vida.
+        
+        INFORMACIÓN DEL USUARIO:
+        - Nombre: {name}
+        {personal_context}
+        
+        CONTEXTO TEMPORAL:
         - Fecha/Hora actual: {current_time.strftime('%Y-%m-%d %H:%M:%S')} (Costa Rica, UTC-6)
         - Día de la semana: {current_time.strftime('%A')}
         
         MENSAJE A PROCESAR:
         "{message}"
+        
+        INSTRUCCIONES:
+        - Usa el contexto personal para dar respuestas más relevantes
+        - Si conoces la ocupación, ajusta sugerencias (ej: "reunión" puede ser trabajo)
+        - Si conoces hobbies, relaciona gastos/eventos con ellos
+        - Mantén el tono personal y familiar
         
         {self._get_base_instructions()}
         

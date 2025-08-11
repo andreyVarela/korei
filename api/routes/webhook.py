@@ -111,13 +111,30 @@ async def process_message_async(payload: Dict[str, Any], session: str = "default
         logger.info(f"📱 Procesando mensaje de {notify_name} ({phone})")
         logger.info(f"🆔 ID: {message_id} | Tipo: {message_type} | Sesión: {session}")
         
+        # Obtener contexto completo del usuario
+        from core.supabase import supabase
+        user_context = await supabase.get_user_with_context(phone)
+        
         # Procesar según tipo de mensaje
         if message_type == "text":
             body = payload.get("body", "")
             logger.info(f"💬 Texto: '{body}'")
             
-            # TODO: Aquí procesaremos con Gemini AI
-            # result = await gemini_service.process_text(body, user_info)
+            # Verificar si es un comando
+            if body.startswith('/'):
+                from handlers.command_handler import command_handler
+                command = body.split()[0].lower()
+                result = await command_handler.handle_command(command, body, user_context)
+                
+                # TODO: Enviar respuesta al usuario via WhatsApp
+                logger.info(f"🤖 Comando procesado: {result}")
+            else:
+                # Procesar mensaje normal con Gemini AI  
+                from services.gemini import gemini_service
+                result = await gemini_service.process_message(body, user_context)
+                
+                # TODO: Guardar en database y responder
+                logger.info(f"🧠 IA procesada: {result}")
             
         elif message_type == "image":
             caption = payload.get("caption", "")

@@ -176,6 +176,94 @@ class SupabaseService:
         except Exception as e:
             logger.error(f"Error obteniendo recordatorios: {e}")
             return []
+    
+    # User Profile methods
+    async def get_user_profile(self, user_id: str) -> Dict[str, Any]:
+        """Obtiene perfil completo del usuario"""
+        try:
+            result = self._get_client().table("user_profiles").select("*").eq(
+                "user_id", user_id
+            ).execute()
+            
+            if result.data:
+                return result.data[0]
+            
+            # Si no tiene perfil, crear uno básico
+            return {
+                "user_id": user_id,
+                "occupation": None,
+                "hobbies": [],
+                "context_summary": None,
+                "preferences": {}
+            }
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo perfil: {e}")
+            return {}
+    
+    async def create_user_profile(self, user_id: str, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Crea o actualiza perfil de usuario"""
+        try:
+            # Verificar si ya existe
+            existing = self._get_client().table("user_profiles").select("id").eq(
+                "user_id", user_id
+            ).execute()
+            
+            if existing.data:
+                # Actualizar existente
+                result = self._get_client().table("user_profiles").update(
+                    profile_data
+                ).eq("user_id", user_id).execute()
+            else:
+                # Crear nuevo
+                profile_data["user_id"] = user_id
+                result = self._get_client().table("user_profiles").insert(
+                    profile_data
+                ).execute()
+            
+            return result.data[0] if result.data else {}
+            
+        except Exception as e:
+            logger.error(f"Error creando/actualizando perfil: {e}")
+            raise
+    
+    async def update_user_context(self, user_id: str, context_summary: str) -> None:
+        """Actualiza el resumen de contexto del usuario"""
+        try:
+            self._get_client().table("user_profiles").update({
+                "context_summary": context_summary
+            }).eq("user_id", user_id).execute()
+            
+            logger.info(f"Contexto actualizado para usuario {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error actualizando contexto: {e}")
+    
+    async def get_user_with_context(self, phone: str) -> Dict[str, Any]:
+        """Obtiene usuario con toda su información de contexto"""
+        try:
+            # Obtener o crear usuario
+            user = await self.get_or_create_user(phone)
+            
+            # Obtener perfil
+            profile = await self.get_user_profile(user["id"])
+            
+            # Combinar información
+            return {
+                "id": user["id"],
+                "phone": phone,
+                "name": user.get("name", "Usuario"),
+                "profile": {
+                    "occupation": profile.get("occupation"),
+                    "hobbies": profile.get("hobbies", []),
+                    "context_summary": profile.get("context_summary"),
+                    "preferences": profile.get("preferences", {})
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo contexto completo: {e}")
+            return {}
 
 # Instancia singleton
 supabase = SupabaseService()

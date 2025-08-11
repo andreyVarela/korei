@@ -18,7 +18,7 @@ def test_text_message():
         "timestamp": int(time.time() * 1000),
         "payload": {
             "id": f"test_text_{int(time.time())}",
-            "from": "5555551234@c.us",
+            "from": "50660052300@c.us",
             "fromMe": False,
             "body": "Gasté $25 en almuerzo hoy",
             "type": "text",
@@ -42,7 +42,7 @@ def test_image_message():
         "timestamp": int(time.time() * 1000),
         "payload": {
             "id": f"test_image_{int(time.time())}",
-            "from": "5555551234@c.us", 
+            "from": "50660052300@c.us", 
             "fromMe": False,
             "body": "",
             "type": "image",
@@ -68,7 +68,7 @@ def test_audio_message():
         "timestamp": int(time.time() * 1000),
         "payload": {
             "id": f"test_audio_{int(time.time())}",
-            "from": "5555551234@c.us",
+            "from": "50660052300@c.us",
             "fromMe": False,
             "body": "",
             "type": "audio",
@@ -93,7 +93,7 @@ def test_own_message():
         "timestamp": int(time.time() * 1000), 
         "payload": {
             "id": f"test_own_{int(time.time())}",
-            "from": "5555551234@c.us",
+            "from": "50660052300@c.us",
             "fromMe": True,  # Mensaje propio
             "body": "Este mensaje debe ser ignorado",
             "type": "text",
@@ -103,6 +103,78 @@ def test_own_message():
     }
     
     print("[SKIP] Enviando mensaje propio (debe ignorarse)...")
+    print(f"[OUT] Payload: {json.dumps(payload, indent=2)}")
+    
+    response = requests.post(WEBHOOK_URL, json=payload)
+    print(f"[IN] Respuesta: {response.status_code} - {response.text}")
+    print("-" * 50)
+
+def test_register_command():
+    """Prueba comando /register"""
+    payload = {
+        "event": "message",
+        "session": "default",
+        "timestamp": int(time.time() * 1000),
+        "payload": {
+            "id": f"test_register_{int(time.time())}",
+            "from": "50660052300@c.us",
+            "fromMe": False,
+            "body": "/register Soy programador y fotógrafo de bodas, me gusta la tecnología",
+            "type": "text",
+            "timestamp": int(time.time()),
+            "notifyName": "Andrei Varela"
+        }
+    }
+    
+    print("[COMMAND] Enviando comando /register...")
+    print(f"[OUT] Payload: {json.dumps(payload, indent=2)}")
+    
+    response = requests.post(WEBHOOK_URL, json=payload)
+    print(f"[IN] Respuesta: {response.status_code} - {response.text}")
+    print("-" * 50)
+
+def test_profile_command():
+    """Prueba comando /profile"""
+    payload = {
+        "event": "message",
+        "session": "default",
+        "timestamp": int(time.time() * 1000),
+        "payload": {
+            "id": f"test_profile_{int(time.time())}",
+            "from": "50660052300@c.us",
+            "fromMe": False,
+            "body": "/profile",
+            "type": "text",
+            "timestamp": int(time.time()),
+            "notifyName": "Andrei Varela"
+        }
+    }
+    
+    print("[COMMAND] Enviando comando /profile...")
+    print(f"[OUT] Payload: {json.dumps(payload, indent=2)}")
+    
+    response = requests.post(WEBHOOK_URL, json=payload)
+    print(f"[IN] Respuesta: {response.status_code} - {response.text}")
+    print("-" * 50)
+
+def test_personalized_message():
+    """Prueba mensaje que debería usar contexto personal"""
+    payload = {
+        "event": "message",
+        "session": "default",
+        "timestamp": int(time.time() * 1000),
+        "payload": {
+            "id": f"test_personal_{int(time.time())}",
+            "from": "50660052300@c.us",
+            "fromMe": False,
+            "body": "Compré una nueva lente para mi cámara por $500",
+            "type": "text",
+            "timestamp": int(time.time()),
+            "notifyName": "Andrei Varela"
+        }
+    }
+    
+    print("[PERSONAL] Enviando mensaje con contexto personal...")
     print(f"[OUT] Payload: {json.dumps(payload, indent=2)}")
     
     response = requests.post(WEBHOOK_URL, json=payload)
@@ -145,9 +217,10 @@ if __name__ == "__main__":
         print("-" * 50)
         
         # Ejecutar todas las pruebas
+        test_register_command()
+        test_profile_command() 
+        test_personalized_message()
         test_text_message()
-        test_image_message()
-        test_audio_message() 
         test_own_message()
         test_status_event()
         
