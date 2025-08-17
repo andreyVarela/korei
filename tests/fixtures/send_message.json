@@ -1,0 +1,8 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "50660052300",
+  "type": "text",
+  "text": {
+    "body": "¡Segundo mensaje de prueba! 🎉 Ahora con webhook activo"
+  }
+}

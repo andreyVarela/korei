@@ -1,24 +1,55 @@
-# Core
+# ==========================================
+# KOREI ASSISTANT - PRODUCTION DEPENDENCIES
+# ==========================================
+
+# Core Web Framework
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
+pydantic==2.5.0
 pydantic-settings==2.10.1
 python-dotenv==1.0.1
 python-multipart==0.0.6
 
-# Base de datos
+# Database & Storage
 supabase==2.3.4
 
-# IA - Solo Gemini
+# AI Services
 google-generativeai==0.3.2
 
-# HTTP Async
-aiohttp==3.9.3
+# HTTP & Async
+aiohttp==3.9.3  # Resolved version conflict (was 3.9.1 in integrations)
 aiofiles==23.2.1
+httpx==0.25.2
 
-# Procesamiento multimedia
+# Security & Encryption
+cryptography==41.0.8
+
+# Scheduling & Tasks
+apscheduler==3.10.4
+
+# Media Processing (only if needed)
 pillow==10.2.0
 pydub==0.25.1
 
-# Utilidades
+# Utilities
 pytz==2024.1
 loguru==0.7.2
+tenacity==8.2.3
+
+# Testing (development only)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+coverage==7.3.2
+
+# ==========================================
+# OPTIONAL INTEGRATIONS
+# ==========================================
+
+# Google Calendar
+google-auth==2.23.4
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+google-api-python-client==2.108.0
+
+# Additional async utilities
+asyncio-throttle==1.0.2

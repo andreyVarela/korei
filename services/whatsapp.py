@@ -14,10 +14,10 @@ class WhatsAppService:
         
     async def send_message(self, to: str, message: str) -> bool:
         """
-        Envía mensaje de texto
+        Envï¿½a mensaje de texto
         """
         try:
-            # Si WAHA no está configurado, solo log
+            # Si WAHA no estï¿½ configurado, solo log
             if self.api_key == "tu_waha_key_aqui":
                 logger.info(f"[MOCK] Mensaje a {to}: {message}")
                 return True
@@ -49,7 +49,7 @@ class WhatsAppService:
     
     async def send_image(self, to: str, image_url: str, caption: str = "") -> bool:
         """
-        Envía imagen con caption
+        Envï¿½a imagen con caption
         """
         try:
             if self.api_key == "tu_waha_key_aqui":
@@ -100,9 +100,44 @@ class WhatsAppService:
             logger.error(f"Error descargando media: {e}")
             return None
     
+    async def send_typing(self, to: str) -> bool:
+        """
+        Simula que estamos escribiendo
+        """
+        try:
+            if self.api_key == "tu_waha_key_aqui":
+                logger.info(f"[MOCK] Typing a {to}")
+                return True
+                
+            # En WAHA real se podrÃ­a usar sendChatState
+            logger.info(f"Typing indicator sent to {to}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error en send_typing: {e}")
+            return False
+    
+    def format_response(self, result: Dict[str, Any]) -> str:
+        """
+        Formatea la respuesta de Gemini para WhatsApp usando MessageFormatter
+        """
+        try:
+            logger.info(f"Formatting result: {result}")
+            from services.formatters import message_formatter
+            formatted = message_formatter.format_entry_response(result)
+            logger.info(f"Formatted response: {formatted[:100]}...")
+            return formatted
+            
+        except Exception as e:
+            logger.error(f"Error formateando respuesta: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            # Fallback simple en caso de error
+            return f"âœ… {result.get('description', 'Mensaje procesado correctamente')}"
+    
     def is_configured(self) -> bool:
         """
-        Verifica si WAHA está configurado
+        Verifica si WAHA estï¿½ configurado
         """
         return self.api_key != "tu_waha_key_aqui"
 

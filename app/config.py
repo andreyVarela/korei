@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # App
     app_name: str = "Korei Assistant"
     app_version: str = "2.0.0"
-    debug: bool = False
+    debug: bool = True
     environment: str = "development"
     port: int = 8000
     timezone: str = "America/Costa_Rica"
@@ -19,10 +19,17 @@ class Settings(BaseSettings):
     supabase_anon_key: str  
     supabase_service_key: str
     
-    # WhatsApp (WAHA)
-    waha_api_url: str
-    waha_api_key: str
+    # WhatsApp (WAHA) - Legacy
+    waha_api_url: Optional[str] = None
+    waha_api_key: Optional[str] = None
     waha_session: str = "default"
+    
+    # WhatsApp Cloud API
+    whatsapp_access_token: str
+    whatsapp_verify_token: str
+    whatsapp_phone_number_id: str
+    whatsapp_business_account_id: str
+    whatsapp_webhook_secret: Optional[str] = None
     
     # AI Services
     gemini_api_key: str
@@ -32,15 +39,28 @@ class Settings(BaseSettings):
     api_key: Optional[str] = None
     allowed_origins: list[str] = ["*"]
     
+    # Optional webhook URL (for documentation/testing)
+    webhook_url: Optional[str] = None
+    
+    # Configuración de integraciones
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
+    base_url: str = "http://localhost:8000/"
+    encryption_master_key: Optional[str] = None
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False
     )
 
-@lru_cache()
 def get_settings() -> Settings:
-    """Cache settings untuk performa"""
+    """Get settings (no cache in development)"""
+    # Force reload .env file
+    import os
+    from dotenv import load_dotenv
+    load_dotenv(override=True)  # This forces reload
     return Settings()
 
+# Create fresh instance every time
 settings = get_settings()

@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "709752851834150",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "50660052300",
+              "phone_number_id": "765691039959515"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Andrei"
+                },
+                "wa_id": "50660052300"
+              }
+            ],
+            "messages": [
+              {
+                "from": "50660052300",
+                "id": "wamid.real_test_123456",
+                "timestamp": "1734307200",
+                "text": {
+                  "body": "Gasto 10000 en linea"
+                },
+                "type": "text"
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

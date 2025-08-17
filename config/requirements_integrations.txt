@@ -1,0 +1,33 @@
+# Dependencias adicionales para integraciones externas
+# Instalar con: pip install -r requirements_integrations.txt
+
+# Google Calendar Integration
+google-auth==2.23.4
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+google-api-python-client==2.108.0
+
+# HTTP Requests para APIs
+aiohttp==3.9.1
+httpx==0.25.2
+
+# Encriptación para almacenar credenciales de forma segura
+cryptography==41.0.8
+pycryptodome==3.19.0
+
+# Validación y serialización adicional
+pydantic==2.5.0
+
+# Async utilities
+asyncio-throttle==1.0.2
+tenacity==8.2.3  # Para retry automático en APIs
+
+# Opcional: Para Microsoft Graph (To-Do, Outlook)
+# msal==1.24.1
+# msgraph-core==0.2.2
+
+# Opcional: Para Notion API
+# notion-client==2.2.1
+
+# Opcional: Para Slack integration (futuro)
+# slack-sdk==3.23.0

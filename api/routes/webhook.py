@@ -6,7 +6,188 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from typing import Dict, Any
 
+
 router = APIRouter()
+
+# Endpoint para WhatsApp Cloud API (Meta)
+@router.get("/meta")
+async def meta_webhook_verify(request: Request):
+    """
+    Verificación de webhook para WhatsApp Cloud API (Meta)
+    Meta envía un GET con los parámetros:
+    - hub.mode
+    - hub.challenge
+    - hub.verify_token
+    """
+    params = dict(request.query_params)
+    mode = params.get("hub.mode")
+    token = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+    # Cambia este token por el que configuraste en Meta
+    VERIFY_TOKEN = "TU_TOKEN_VERIFICACION"
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return JSONResponse(content=challenge)
+    return JSONResponse(content="Invalid verification", status_code=403)
+
+@router.post("/meta")
+async def meta_webhook_handler(request: Request, background_tasks: BackgroundTasks):
+    """
+    Recibe mensajes y eventos de WhatsApp Cloud API (Meta)
+    Documentación: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples/
+    """
+    try:
+        data = await request.json()
+        logger.info(f"📥 Webhook Meta recibido: {data}")
+        # Procesar cada entry
+        for entry in data.get("entry", []):
+            for change in entry.get("changes", []):
+                value = change.get("value", {})
+                messages = value.get("messages", [])
+                for message in messages:
+                    # Idempotencia: verificar si ya procesamos este mensaje
+                    message_id = message.get("id")
+                    if message_id:
+                        from core.supabase import supabase
+                        try:
+                            existing = supabase._get_client().table("entries").select("id").eq(
+                                "id_meta", message_id
+                            ).execute()
+                            if existing.data:
+                                logger.info(f"⚠️ Mensaje duplicado ignorado: {message_id}")
+                                continue
+                        except Exception as e:
+                            logger.warning(f"Error verificando idempotencia Meta: {e}")
+                    # Procesar en background
+                    background_tasks.add_task(
+                        process_meta_message_async,
+                        message,
+                        value
+                    )
+        return {"status": "accepted"}
+    except Exception as e:
+        logger.error(f"❌ Error en webhook Meta: {e}")
+        return {"status": "error", "message": str(e)}
+
+async def handle_button_interaction(button_id: str, user_context: dict):
+    """
+    Maneja las interacciones con botones
+    """
+    try:
+        if button_id.startswith("complete_task_"):
+            # Extraer ID de la tarea
+            task_id = button_id.replace("complete_task_", "")
+            
+            # Marcar tarea como completada
+            from core.supabase import supabase
+            await supabase.update_entry(task_id, {"status": "completed"})
+            
+            # Obtener datos de la tarea para confirmación
+            task_data = await supabase.get_entry_by_id(task_id)
+            task_description = task_data.get('description', 'Tarea') if task_data else 'Tarea'
+            
+            # Enviar confirmación
+            from services.whatsapp_cloud import whatsapp_cloud_service
+            confirmation_message = f"✅ **Tarea completada**\n\n📝 {task_description}\n\n🎉 ¡Bien hecho!"
+            
+            await whatsapp_cloud_service.send_text_message(
+                to=user_context['whatsapp_number'],
+                message=confirmation_message
+            )
+            
+            # Si hay integración con Todoist, marcar allí también
+            if task_data and task_data.get('external_service') == 'todoist':
+                external_id = task_data.get('external_id')
+                if external_id:
+                    try:
+                        from services.integrations.integration_manager import integration_manager
+                        todoist_integration = await integration_manager.get_user_integration(
+                            user_context['id'], 'todoist'
+                        )
+                        if todoist_integration:
+                            await todoist_integration.complete_task(external_id)
+                            logger.info(f"TODOIST: Tarea {external_id} marcada como completada")
+                    except Exception as todoist_error:
+                        logger.error(f"TODOIST ERROR: {todoist_error}")
+            
+            logger.info(f"✅ Tarea {task_id} completada por botón")
+            
+        else:
+            logger.warning(f"Botón no reconocido: {button_id}")
+            
+    except Exception as e:
+        logger.error(f"Error manejando interacción de botón: {e}")
+
+async def process_meta_message_async(message: dict, value: dict):
+    """
+    Procesa mensaje de WhatsApp Cloud API (Meta) de forma asíncrona
+    """
+
+    try:
+        message_id = message.get("id", "unknown")
+        phone = message.get("from", "")
+        message_type = message.get("type", "text")
+        timestamp = message.get("timestamp", 0)
+        logger.info(f"📱 Procesando mensaje Meta de {phone}")
+        logger.info(f"🆔 ID: {message_id} | Tipo: {message_type}")
+        from core.supabase import supabase
+        # Buscar usuario existente
+        user = await supabase.get_user_by_phone(phone)
+        body = message.get("text", {}).get("body", "") if message_type == "text" else None
+        # Si no existe el usuario
+        if not user:
+            # Verificar si el mensaje es para registrarse (ejemplo: comando /registrar)
+            if message_type == "text" and body and body.strip().lower().startswith("/registrar"):
+                # Procesar registro normalmente
+                user_context = await supabase.get_user_with_context(phone)
+                from handlers.command_handler import command_handler
+                result = await command_handler.handle_command("/registrar", body, user_context)
+                logger.info(f"🤖 Registro procesado Meta: {result}")
+            else:
+                logger.info(f"⏭️ Usuario no existe y no es registro. Ignorando mensaje Meta de {phone}")
+                return  # No responde ni procesa
+        else:
+            # Si el usuario existe y tiene el pago activo, procesar normalmente
+            if user.get("payment") == True:
+                user_context = await supabase.get_user_with_context(phone)
+                if message_type == "text":
+                    logger.info(f"💬 Texto: '{body}'")
+                    if body.startswith('/'):
+                        from handlers.command_handler import command_handler
+                        command = body.split()[0].lower()
+                        result = await command_handler.handle_command(command, body, user_context)
+                        logger.info(f"🤖 Comando procesado Meta: {result}")
+                    else:
+                        from services.gemini import gemini_service
+                        result = await gemini_service.process_message(body, user_context)
+                        logger.info(f"🧠 IA procesada Meta: {result}")
+                elif message_type == "image":
+                    logger.info(f"🖼️ Imagen recibida Meta")
+                    # TODO: Procesar imagen con Gemini Vision
+                elif message_type in ["audio", "voice"]:
+                    logger.info(f"🎵 Audio recibido Meta")
+                    # TODO: Transcribir y procesar con Gemini
+                elif message_type == "interactive":
+                    logger.info(f"🔘 Mensaje interactivo recibido Meta")
+                    # Manejar respuesta de botón
+                    interactive_data = message.get("interactive", {})
+                    if interactive_data.get("type") == "button_reply":
+                        button_reply = interactive_data.get("button_reply", {})
+                        button_id = button_reply.get("id", "")
+                        
+                        logger.info(f"🔘 Botón presionado: {button_id}")
+                        
+                        # Procesar acción del botón
+                        await handle_button_interaction(button_id, user_context)
+                else:
+                    logger.info(f"📎 Tipo de mensaje no soportado Meta: {message_type}")
+                # TODO: Guardar en Supabase
+                logger.info("✅ Mensaje Meta procesado exitosamente")
+            else:
+                logger.info(f"⏭️ Usuario {phone} no tiene pago activo (payment={user.get('payment')}). Ignorando mensaje.")
+                return
+    except Exception as e:
+        logger.error(f"❌ Error procesando mensaje Meta: {e}")
+        # TODO: Enviar mensaje de error al usuario
 
 @router.get("/test")
 async def webhook_test():

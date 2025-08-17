@@ -28,27 +28,108 @@ class SupabaseService:
         return self.client
         
     # Usuario methods
-    async def get_or_create_user(self, phone: str, name: str = None) -> Dict[str, Any]:
-        """Obtiene o crea usuario"""
+    async def get_user_by_phone(self, phone: str) -> Optional[Dict[str, Any]]:
+        """Busca usuario por teléfono - compatible con ambos formatos"""
         try:
-            # Buscar usuario existente
+            # Limpiar número
+            clean_phone = ''.join(filter(str.isdigit, phone))
+            
+            # Intentar buscar con número limpio primero (nuevo formato)
             result = self._get_client().table("users").select("*").eq(
-                "whatsapp_number", phone
+                "whatsapp_number", clean_phone
             ).execute()
             
             if result.data:
                 return result.data[0]
             
-            # Crear nuevo usuario
-            new_user = {
-                "whatsapp_number": phone,
-                "name": name or f"Usuario {phone[-4:]}",
+            # Si no encuentra, intentar con formato @c.us (formato legacy)
+            legacy_phone = f"{clean_phone}@c.us"
+            result = self._get_client().table("users").select("*").eq(
+                "whatsapp_number", legacy_phone
+            ).execute()
+            
+            return result.data[0] if result.data else None
+            
+        except Exception as e:
+            logger.error(f"Error buscando usuario: {e}")
+            return None
+    
+    async def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Busca usuario por ID"""
+        try:
+            result = self._get_client().table("users").select("*").eq(
+                "id", user_id
+            ).execute()
+            
+            return result.data[0] if result.data else None
+            
+        except Exception as e:
+            logger.error(f"Error buscando usuario por ID: {e}")
+            return None
+    
+    async def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Crea nuevo usuario"""
+        try:
+            # Usar las columnas correctas del esquema
+            clean_data = {
+                "whatsapp_number": user_data.get("whatsapp_number"),
+                "name": user_data.get("name", user_data.get("display_name", "Usuario")),
                 "created_at": datetime.now(self.tz).isoformat()
             }
             
-            result = self._get_client().table("users").insert(new_user).execute()
-            logger.info(f"Nuevo usuario creado: {phone}")
+            result = self._get_client().table("users").insert(clean_data).execute()
+            logger.info(f"Nuevo usuario creado: {clean_data.get('whatsapp_number')}")
             return result.data[0]
+            
+        except Exception as e:
+            logger.error(f"Error creando usuario: {e}")
+            raise
+    
+    async def update_user(self, user_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Actualiza usuario"""
+        try:
+            result = self._get_client().table("users").update(update_data).eq(
+                "id", user_id
+            ).execute()
+            return result.data[0] if result.data else {}
+            
+        except Exception as e:
+            logger.error(f"Error actualizando usuario: {e}")
+            raise
+    
+    async def get_or_create_user(self, phone: str, name: str = None) -> Dict[str, Any]:
+        """Obtiene o crea usuario - compatible con formato WhatsApp Cloud API"""
+        try:
+            # Limpiar número (viene limpio desde WhatsApp Cloud API)
+            clean_phone = ''.join(filter(str.isdigit, phone))
+            
+            # Buscar usuario existente (busca en ambos formatos)
+            user = await self.get_user_by_phone(clean_phone)
+            
+            if user:
+                # Convertir a formato esperado por message_handler
+                return {
+                    "id": user["id"],
+                    "whatsapp_number": clean_phone,  # Siempre limpio para WhatsApp Cloud API
+                    "display_name": user.get("name", "Usuario"),
+                    "is_active": True
+                }
+            
+            # Crear nuevo usuario (formato limpio para WhatsApp Cloud API)
+            new_user = {
+                "whatsapp_number": clean_phone,  # Sin @c.us para nuevos usuarios
+                "name": name or f"Usuario {clean_phone[-4:]}",
+            }
+            
+            created_user = await self.create_user(new_user)
+            
+            # Convertir a formato esperado
+            return {
+                "id": created_user["id"],
+                "whatsapp_number": clean_phone,  # Limpio para compatibilidad
+                "display_name": created_user.get("name", "Usuario"),
+                "is_active": True
+            }
             
         except Exception as e:
             logger.error(f"Error en get_or_create_user: {e}")
@@ -68,6 +149,84 @@ class SupabaseService:
         except Exception as e:
             logger.error(f"Error creando entrada: {e}")
             raise
+    
+    async def update_entry(self, entry_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Actualiza una entrada"""
+        try:
+            # Asegurar timestamp de actualización
+            update_data['updated_at'] = datetime.now(self.tz).isoformat()
+                
+            result = self._get_client().table("entries").update(update_data).eq(
+                "id", entry_id
+            ).execute()
+            
+            if result.data:
+                return result.data[0]
+            else:
+                raise ValueError(f"No se encontró entrada con ID: {entry_id}")
+            
+        except Exception as e:
+            logger.error(f"Error actualizando entrada {entry_id}: {e}")
+            raise
+    
+    async def update_entry_status(self, entry_id: str, new_status: str) -> Dict[str, Any]:
+        """Actualiza específicamente el estado de una entrada"""
+        try:
+            logger.info(f"🔄 Iniciando actualización de estado: entry_id={entry_id}, new_status={new_status}")
+            
+            now = datetime.now(self.tz)
+            
+            # Crear datos de actualización básicos
+            update_data = {
+                'status': new_status
+            }
+            
+            # Si se marca como completada, agregar timestamp de completado
+            if new_status == 'completed':
+                update_data['completed_at'] = now.isoformat()
+                logger.info(f"📅 Agregando completed_at: {update_data['completed_at']}")
+            
+            # Intentar agregar updated_at solo si existe la columna
+            try:
+                # Test si updated_at existe haciendo una query simple
+                test_result = self._get_client().table("entries").select("updated_at").limit(1).execute()
+                update_data['updated_at'] = now.isoformat()
+                logger.info(f"📅 Agregando updated_at: {update_data['updated_at']}")
+            except Exception as col_error:
+                logger.warning(f"⚠️ Columna updated_at no existe, continuando sin ella: {col_error}")
+            
+            logger.info(f"📝 Datos a actualizar: {update_data}")
+            
+            result = self._get_client().table("entries").update(update_data).eq(
+                "id", entry_id
+            ).execute()
+            
+            logger.info(f"📊 Resultado de Supabase: {result}")
+            
+            if result.data:
+                logger.info(f"✅ Entrada {entry_id} marcada como {new_status} exitosamente")
+                return result.data[0]
+            else:
+                logger.error(f"❌ No se encontró entrada con ID: {entry_id} o no se actualizó")
+                raise ValueError(f"No se encontró entrada con ID: {entry_id}")
+            
+        except Exception as e:
+            logger.error(f"💥 Error actualizando status de entrada {entry_id}: {e}")
+            logger.error(f"💥 Tipo de error: {type(e)}")
+            raise
+    
+    async def get_entry_by_id(self, entry_id: str) -> Optional[Dict[str, Any]]:
+        """Obtiene una entrada por ID"""
+        try:
+            result = self._get_client().table("entries").select("*").eq(
+                "id", entry_id
+            ).execute()
+            
+            return result.data[0] if result.data else None
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo entrada por ID: {e}")
+            return None
     
     async def get_user_stats(self, user_id: str) -> Dict[str, Any]:
         """Obtiene estadísticas del usuario"""
@@ -239,6 +398,180 @@ class SupabaseService:
         except Exception as e:
             logger.error(f"Error actualizando contexto: {e}")
     
+    async def get_spending_patterns(self, user_id: str, days: int = 30) -> Dict[str, Any]:
+        """Obtiene patrones de gasto de los últimos N días"""
+        try:
+            cutoff_date = (datetime.now(self.tz) - timedelta(days=days))
+            
+            result = self._get_client().table("entries").select("*").eq(
+                "user_id", user_id
+            ).eq(
+                "type", "gasto"
+            ).gte(
+                "datetime", cutoff_date.isoformat()
+            ).order("datetime", desc=True).execute()
+            
+            expenses = result.data
+            
+            # Análisis de patrones
+            patterns = {
+                "total_amount": sum(float(e.get('amount', 0)) for e in expenses),
+                "average_per_day": 0,
+                "by_category": {},
+                "by_day_of_week": {},
+                "by_hour": {},
+                "common_descriptions": {},
+                "largest_expenses": []
+            }
+            
+            if expenses:
+                patterns["average_per_day"] = patterns["total_amount"] / days
+                
+                # Análisis por categoría
+                for exp in expenses:
+                    cat = exp.get('category', 'Sin categoría')
+                    patterns["by_category"][cat] = patterns["by_category"].get(cat, 0) + float(exp.get('amount', 0))
+                
+                # Análisis temporal
+                for exp in expenses:
+                    if exp.get('datetime'):
+                        dt = datetime.fromisoformat(exp['datetime'].replace('Z', '+00:00'))
+                        day_name = dt.strftime('%A')
+                        hour = dt.hour
+                        
+                        patterns["by_day_of_week"][day_name] = patterns["by_day_of_week"].get(day_name, 0) + 1
+                        patterns["by_hour"][hour] = patterns["by_hour"].get(hour, 0) + 1
+                
+                # Descripciones comunes
+                for exp in expenses:
+                    desc = exp.get('description', '').lower()
+                    patterns["common_descriptions"][desc] = patterns["common_descriptions"].get(desc, 0) + 1
+                
+                # Gastos más grandes
+                patterns["largest_expenses"] = sorted(expenses, key=lambda x: float(x.get('amount', 0)), reverse=True)[:10]
+            
+            return patterns
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo patrones de gasto: {e}")
+            return {}
+    
+    async def get_financial_context_summary(self, user_id: str) -> Dict[str, Any]:
+        """Genera un resumen de contexto financiero para IA"""
+        try:
+            # Obtener datos de múltiples períodos
+            now = datetime.now(self.tz)
+            
+            # Último mes
+            last_month = now - timedelta(days=30)
+            result_month = self._get_client().table("entries").select("*").eq(
+                "user_id", user_id
+            ).gte(
+                "datetime", last_month.isoformat()
+            ).execute()
+            
+            # Últimos 3 meses para tendencias
+            last_3_months = now - timedelta(days=90)
+            result_3_months = self._get_client().table("entries").select("*").eq(
+                "user_id", user_id
+            ).gte(
+                "datetime", last_3_months.isoformat()
+            ).execute()
+            
+            entries_month = result_month.data
+            entries_3_months = result_3_months.data
+            
+            context = {
+                "monthly_summary": {
+                    "total_entries": len(entries_month),
+                    "total_gastos": sum(float(e.get('amount', 0)) for e in entries_month if e['type'] == 'gasto'),
+                    "total_ingresos": sum(float(e.get('amount', 0)) for e in entries_month if e['type'] == 'ingreso'),
+                    "avg_expense": 0,
+                    "most_frequent_categories": {}
+                },
+                "spending_trends": {
+                    "is_increasing": False,
+                    "trend_percentage": 0,
+                    "seasonal_patterns": {}
+                },
+                "behavioral_insights": {
+                    "preferred_spending_times": {},
+                    "common_expense_types": {},
+                    "financial_discipline_score": 0  # 0-10 basado en patrones
+                }
+            }
+            
+            gastos_month = [e for e in entries_month if e['type'] == 'gasto']
+            gastos_3_months = [e for e in entries_3_months if e['type'] == 'gasto']
+            
+            if gastos_month:
+                context["monthly_summary"]["avg_expense"] = context["monthly_summary"]["total_gastos"] / len(gastos_month)
+                
+                # Categorías más frecuentes
+                cat_counts = {}
+                for gasto in gastos_month:
+                    cat = gasto.get('category', 'Sin categoría')
+                    cat_counts[cat] = cat_counts.get(cat, 0) + 1
+                
+                context["monthly_summary"]["most_frequent_categories"] = dict(
+                    sorted(cat_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                )
+            
+            # Análisis de tendencias
+            if len(gastos_3_months) >= 30:  # Suficientes datos
+                # Comparar primer mes vs último mes de los 3 meses
+                first_month_expenses = [e for e in gastos_3_months if 
+                                      datetime.fromisoformat(e['datetime'].replace('Z', '+00:00')) < 
+                                      (last_3_months + timedelta(days=30))]
+                last_month_expenses = gastos_month
+                
+                first_total = sum(float(e.get('amount', 0)) for e in first_month_expenses)
+                last_total = sum(float(e.get('amount', 0)) for e in last_month_expenses)
+                
+                if first_total > 0:
+                    trend_pct = ((last_total - first_total) / first_total) * 100
+                    context["spending_trends"]["trend_percentage"] = trend_pct
+                    context["spending_trends"]["is_increasing"] = trend_pct > 5  # 5% threshold
+            
+            return context
+            
+        except Exception as e:
+            logger.error(f"Error generando contexto financiero: {e}")
+            return {}
+    
+    async def store_ai_insight(self, user_id: str, insight_type: str, content: str, metadata: Dict[str, Any] = None) -> None:
+        """Almacena insights generados por IA para referencia futura"""
+        try:
+            insight_data = {
+                "user_id": user_id,
+                "insight_type": insight_type,  # 'financial_tip', 'spending_pattern', 'recommendation'
+                "content": content,
+                "metadata": metadata or {},
+                "created_at": datetime.now(self.tz).isoformat(),
+                "relevance_score": 1.0  # Para futuro ranking
+            }
+            
+            # Crear tabla si no existe (esto sería mejor en migración)
+            self._get_client().table("ai_insights").insert(insight_data).execute()
+            
+        except Exception as e:
+            logger.warning(f"Error almacenando insight de IA: {e}")  # No critical
+    
+    async def get_recent_ai_insights(self, user_id: str, insight_type: str = None, limit: int = 10) -> List[Dict[str, Any]]:
+        """Obtiene insights recientes de IA para contexto"""
+        try:
+            query = self._get_client().table("ai_insights").select("*").eq("user_id", user_id)
+            
+            if insight_type:
+                query = query.eq("insight_type", insight_type)
+            
+            result = query.order("created_at", desc=True).limit(limit).execute()
+            return result.data
+            
+        except Exception as e:
+            logger.warning(f"Error obteniendo insights de IA: {e}")
+            return []
+    
     async def get_user_with_context(self, phone: str) -> Dict[str, Any]:
         """Obtiene usuario con toda su información de contexto"""
         try:
@@ -252,6 +585,7 @@ class SupabaseService:
             return {
                 "id": user["id"],
                 "phone": phone,
+                "whatsapp_number": phone,  # Para compatibilidad con message_handler
                 "name": user.get("name", "Usuario"),
                 "profile": {
                     "occupation": profile.get("occupation"),
