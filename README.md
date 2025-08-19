@@ -209,4 +209,6 @@ Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 ---
 
-⭐ **¡Danos una estrella si te gusta el proyecto!**# Deployment Test
+⭐ **¡Danos una estrella si te gusta el proyecto!**
+
+*Korei Assistant - Production Ready 🚀*
