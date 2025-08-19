@@ -55,9 +55,11 @@ app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 if settings.debug:
+    # Parse allowed_origins string to list
+    origins = [origin.strip() for origin in settings.allowed_origins.split(',') if origin.strip()]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.allowed_origins,
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
