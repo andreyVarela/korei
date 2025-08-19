@@ -2,8 +2,9 @@
 Configuración usando Pydantic Settings para validación
 """
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+from typing import Optional, List
 from functools import lru_cache
+from pydantic import field_validator
 
 class Settings(BaseSettings):
     # App
@@ -37,7 +38,15 @@ class Settings(BaseSettings):
     # Security
     api_key: Optional[str] = None
     secret_key: str  # JWT secret key
-    allowed_origins: str = "*"  # Comma-separated origins
+    allowed_origins: List[str] = ["*"]  # Will be parsed from comma-separated string
+    
+    @field_validator('allowed_origins', mode='before')
+    @classmethod
+    def parse_allowed_origins(cls, v):
+        """Parse comma-separated string into list"""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
     
     # Optional webhook URL (for documentation/testing)
     webhook_url: Optional[str] = None
