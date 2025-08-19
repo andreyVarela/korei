@@ -74,7 +74,7 @@ COPY --chown=korei:korei api/ ./api/
 COPY --chown=korei:korei core/ ./core/
 COPY --chown=korei:korei handlers/ ./handlers/
 COPY --chown=korei:korei services/ ./services/
-COPY --chown=korei:korei middleware/ ./middleware/
+# COPY --chown=korei:korei middleware/ ./middleware/ # Directory does not exist
 
 # Switch to non-root user
 USER korei
