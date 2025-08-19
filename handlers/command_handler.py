@@ -1,10 +1,11 @@
 """
 Handler para comandos especiales como /register, /help, /stats y nuevos comandos
 """
-from typing import Dict, Any
+from typing import Dict, Any, List
 from loguru import logger
 from datetime import datetime, timedelta
 import pytz
+import os
 from core.supabase import supabase
 from services.gemini import gemini_service
 from app.config import settings
@@ -77,6 +78,57 @@ class CommandHandler:
                 return await self.handle_tasks_with_buttons(user_context, message)
             elif command == "/hola" or command == "/hello" or command == "/hi":
                 return await self.handle_greeting(user_context)
+            # ADHD SUPPORT COMMANDS - Natural language style
+            elif command == "/adhd":
+                return await self.handle_adhd_command(message, user_context, "natural")
+            elif command == "/adhd-rutina" or command == "/adhd-routine":
+                return await self.handle_adhd_routine(message, user_context, "natural")
+            elif command == "/adhd-atencion" or command == "/adhd-attention":
+                return await self.handle_adhd_attention(message, user_context, "natural")
+            elif command == "/adhd-dopamina" or command == "/adhd-dopamine":
+                return await self.handle_adhd_dopamine(message, user_context, "natural")
+            elif command == "/adhd-crisis" or command == "/adhd-emergency":
+                return await self.handle_adhd_crisis(message, user_context, "natural")
+            # NEURAL HACKING COMMANDS - Technical/gaming style
+            elif command == "/neural":
+                return await self.handle_adhd_command(message, user_context, "neural")
+            elif command == "/neural-protocol" or command == "/neural-routine":
+                return await self.handle_adhd_routine(message, user_context, "neural")
+            elif command == "/neural-focus" or command == "/neural-attention":
+                return await self.handle_adhd_attention(message, user_context, "neural")
+            elif command == "/neural-boost" or command == "/neural-dopamine":
+                return await self.handle_adhd_dopamine(message, user_context, "neural")
+            elif command == "/neural-recovery" or command == "/neural-crisis":
+                return await self.handle_adhd_crisis(message, user_context, "neural")
+            elif command == "/neural-status" or command == "/neural-scan":
+                return await self.handle_neural_status(user_context)
+            # TUTORIAL AND PREMIUM COMMANDS
+            elif command == "/adhd-tutorial" or command == "/adhd-help":
+                return await self.handle_adhd_tutorial(user_context, "natural")
+            elif command == "/neural-tutorial" or command == "/neural-help":
+                return await self.handle_adhd_tutorial(user_context, "neural")
+            elif command == "/adhd-trial" or command == "/neural-trial":
+                return await self.handle_adhd_trial_activation(user_context, "natural" if "adhd" in command else "neural")
+            elif command == "/adhd-planes" or command == "/adhd-plans":
+                return await self.handle_adhd_plans(user_context, "natural")
+            elif command == "/neural-plans" or command == "/neural-upgrade":
+                return await self.handle_adhd_plans(user_context, "neural")
+            elif command == "/adhd-status" or command == "/premium-status":
+                return await self.handle_premium_status(user_context)
+            elif command == "/adhd-upgrade" or command == "/neural-upgrade":
+                return await self.handle_upgrade_premium(user_context, "natural" if "adhd" in command else "neural")
+            elif command == "/adhd-checkout" or command == "/neural-checkout":
+                return await self.handle_create_checkout(message, user_context, "natural" if "adhd" in command else "neural")
+            # BASIC PLAN COMMANDS
+            elif command == "/basic-trial":
+                return await self.handle_basic_trial_activation(user_context)
+            elif command == "/basic-upgrade" or command == "/basic-plans":
+                return await self.handle_basic_upgrade(user_context)
+            elif command == "/basic-checkout":
+                return await self.handle_create_basic_checkout(message, user_context)
+            # PLAN STATUS
+            elif command == "/plan-status" or command == "/mi-plan":
+                return await self.handle_plan_status(user_context)
             else:
                 return {"error": f"Comando no reconocido: {command}"}
                 
@@ -2221,6 +2273,1228 @@ class CommandHandler:
             logger.error(f"Error ordenando tareas por prioridad: {e}")
             # Fallback: retornar las tareas como están
             return tasks
+
+    # =============================================================
+    # ADHD SUPPORT METHODS - Dual Language (Neural & Natural)
+    # =============================================================
+    
+    async def handle_adhd_command(self, message: str, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Comando principal ADHD - muestra opciones disponibles"""
+        try:
+            from services.adhd_support.language_formatter import ADHDLanguageFormatter
+            formatter = ADHDLanguageFormatter(language_style)
+            
+            if language_style == "neural":
+                help_message = """🧠 NEURAL_HACKING_SYSTEM v2.1 - ADHD Optimization Module
+
+════════════════════════════════════════════
+⚡ AVAILABLE_PROTOCOLS:
+
+🔧 /neural-protocol [type] - Rutinas optimizadas
+   • basica | completa
+   
+🎯 /neural-focus [span] - Gestión de atención  
+   • corta | media | larga
+   
+⚡ /neural-boost [type] - Dopamine regulation
+   • quick | sustained
+   
+🆘 /neural-recovery [crisis] - Emergency protocols
+   • overwhelm | executive | general
+   
+📊 /neural-status - System analysis & metrics
+
+════════════════════════════════════════════
+💡 Neural optimization requires personalized data
+⚙️ All protocols auto-adapt to your cognitive patterns"""
+            else:
+                help_message = """🌟 Soporte ADHD - Tu cerebro merece herramientas que funcionen
+
+💝 **Comandos disponibles:**
+
+🌅 `/adhd-rutina [tipo]` - Rutinas matutinas ADHD-friendly
+   • basica - Para empezar suave
+   • completa - Rutina más estructurada
+
+🎯 `/adhd-atencion [duración]` - Planes de concentración
+   • corta - Sesiones de 15 min
+   • media - Sesiones de 25 min  
+   • larga - Sesiones de 45 min
+
+✨ `/adhd-dopamina [tipo]` - Boost de motivación
+   • quick - Actividades rápidas (5 min)
+   • sustained - Plan de regulación completo
+
+🤗 `/adhd-crisis [tipo]` - Apoyo para días difíciles
+   • overwhelm - Cuando todo se siente demasiado
+   • executive - Cuando no puedes empezar
+   • general - Plan de día difícil básico
+
+🌈 **Recuerda:** No eres perezoso, tu cerebro simplemente funciona diferente"""
+            
+            return {
+                "type": "adhd_help",
+                "message": help_message,
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error en comando ADHD: {e}")
+            return {"error": "Error procesando comando ADHD"}
+    
+    async def handle_adhd_routine(self, message: str, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Crea rutinas matutinas ADHD-optimizadas"""
+        try:
+            # Verificar acceso premium
+            from services.premium_service import premium_service
+            access_check = await premium_service.can_create_adhd_plan(user_context["id"], "routine")
+            
+            if not access_check['can_create']:
+                return await self._handle_premium_required(access_check, language_style, "rutina")
+            
+            from services.adhd_support.adhd_plan_generator import ADHDPlanGenerator
+            from services.adhd_support.context_analyzer import ADHDContextAnalyzer
+            
+            # Parsear parámetros
+            parts = message.split()
+            complexity = parts[1] if len(parts) > 1 else 'basica'
+            
+            # Analizar contexto del usuario
+            analyzer = ADHDContextAnalyzer()
+            user_context_analysis = await analyzer.analyze_adhd_patterns(user_context["id"])
+            
+            # Generar plan
+            generator = ADHDPlanGenerator(language_style)
+            plan = await generator.create_morning_routine(complexity, user_context_analysis)
+            
+            # Crear tareas en el sistema
+            tasks_created = await self._create_adhd_plan_tasks(plan, user_context)
+            
+            # Formatear respuesta
+            from services.adhd_support.language_formatter import ADHDLanguageFormatter
+            formatter = ADHDLanguageFormatter(language_style)
+            
+            plan_data = {
+                'name': plan['name'],
+                'tasks_count': len(tasks_created),
+                'duration_weeks': 4  # Rutinas por defecto 4 semanas
+            }
+            
+            response_message = formatter.format_plan_created(plan_data)
+            
+            # Agregar información de acceso si está en trial
+            if access_check['reason'] == 'trial_access':
+                remaining = access_check.get('remaining', 0)
+                if language_style == 'neural':
+                    response_message += f"\n\n⚡ TRIAL_STATUS: {remaining} protocols remaining"
+                else:
+                    response_message += f"\n\n🎁 Trial: Te quedan {remaining} planes por crear"
+            
+            return {
+                "type": "adhd_routine_created",
+                "message": response_message,
+                "plan_id": plan['id'],
+                "tasks_created": len(tasks_created),
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error creando rutina ADHD: {e}")
+            return {"error": "Error creando rutina ADHD"}
+    
+    async def handle_adhd_attention(self, message: str, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Crea planes de gestión de atención"""
+        try:
+            from services.adhd_support.adhd_plan_generator import ADHDPlanGenerator
+            from services.adhd_support.context_analyzer import ADHDContextAnalyzer
+            
+            # Parsear parámetros
+            parts = message.split()
+            attention_span = parts[1] if len(parts) > 1 else 'media'
+            
+            # Analizar contexto del usuario
+            analyzer = ADHDContextAnalyzer()
+            user_context_analysis = await analyzer.analyze_adhd_patterns(user_context["id"])
+            
+            # Generar plan
+            generator = ADHDPlanGenerator(language_style)
+            plan = await generator.create_attention_management_plan(attention_span, user_context_analysis)
+            
+            # Crear tareas en el sistema
+            tasks_created = await self._create_adhd_plan_tasks(plan, user_context)
+            
+            # Formatear respuesta
+            from services.adhd_support.language_formatter import ADHDLanguageFormatter
+            formatter = ADHDLanguageFormatter(language_style)
+            
+            plan_data = {
+                'name': plan['name'],
+                'tasks_count': len(tasks_created),
+                'duration_weeks': 1  # Planes de atención por 1 semana
+            }
+            
+            response_message = formatter.format_plan_created(plan_data)
+            
+            return {
+                "type": "adhd_attention_created",
+                "message": response_message,
+                "plan_id": plan['id'],
+                "tasks_created": len(tasks_created),
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error creando plan de atención: {e}")
+            return {"error": "Error creando plan de atención"}
+    
+    async def handle_adhd_dopamine(self, message: str, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Crea planes de regulación de dopamina"""
+        try:
+            from services.adhd_support.adhd_plan_generator import ADHDPlanGenerator
+            from services.adhd_support.context_analyzer import ADHDContextAnalyzer
+            
+            # Parsear parámetros
+            parts = message.split()
+            plan_type = parts[1] if len(parts) > 1 else 'quick'
+            
+            # Analizar contexto del usuario
+            analyzer = ADHDContextAnalyzer()
+            user_context_analysis = await analyzer.analyze_adhd_patterns(user_context["id"])
+            
+            # Generar plan
+            generator = ADHDPlanGenerator(language_style)
+            plan = await generator.create_dopamine_regulation_plan(plan_type, user_context_analysis)
+            
+            # Para boost rápido, crear tareas inmediatas
+            if plan_type in ['quick', 'boost']:
+                # Crear tareas inmediatas
+                tasks_created = await self._create_adhd_plan_tasks(plan, user_context)
+                
+                # Formatear respuesta de boost
+                from services.adhd_support.language_formatter import ADHDLanguageFormatter
+                formatter = ADHDLanguageFormatter(language_style)
+                
+                boost_data = {
+                    'activities_count': len(tasks_created),
+                    'duration': 15  # 15 min total aprox
+                }
+                
+                response_message = formatter.format_dopamine_boost(boost_data)
+            else:
+                # Plan de regulación sostenida
+                tasks_created = await self._create_adhd_plan_tasks(plan, user_context)
+                
+                from services.adhd_support.language_formatter import ADHDLanguageFormatter
+                formatter = ADHDLanguageFormatter(language_style)
+                
+                plan_data = {
+                    'name': plan['name'],
+                    'tasks_count': len(tasks_created),
+                    'duration_weeks': 2  # Regulación sostenida
+                }
+                
+                response_message = formatter.format_plan_created(plan_data)
+            
+            return {
+                "type": "adhd_dopamine_created",
+                "message": response_message,
+                "plan_id": plan['id'],
+                "tasks_created": len(tasks_created),
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error creando plan de dopamina: {e}")
+            return {"error": "Error creando plan de dopamina"}
+    
+    async def handle_adhd_crisis(self, message: str, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Activa planes de crisis para días difíciles"""
+        try:
+            from services.adhd_support.adhd_plan_generator import ADHDPlanGenerator
+            from services.adhd_support.context_analyzer import ADHDContextAnalyzer
+            
+            # Parsear tipo de crisis
+            parts = message.split()
+            crisis_type = parts[1] if len(parts) > 1 else 'general'
+            
+            # Analizar contexto del usuario
+            analyzer = ADHDContextAnalyzer()
+            user_context_analysis = await analyzer.analyze_adhd_patterns(user_context["id"])
+            
+            # Generar plan de crisis
+            generator = ADHDPlanGenerator(language_style)
+            plan = await generator.create_crisis_plan(crisis_type, user_context_analysis)
+            
+            # Crear tareas de emergencia (inmediatas)
+            tasks_created = await self._create_adhd_plan_tasks(plan, user_context, is_crisis=True)
+            
+            # Formatear respuesta de crisis
+            from services.adhd_support.language_formatter import ADHDLanguageFormatter
+            formatter = ADHDLanguageFormatter(language_style)
+            
+            response_message = formatter.format_crisis_activated(crisis_type, len(tasks_created))
+            
+            return {
+                "type": "adhd_crisis_activated",
+                "message": response_message,
+                "plan_id": plan['id'],
+                "tasks_created": len(tasks_created),
+                "crisis_type": crisis_type,
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error activando plan de crisis: {e}")
+            return {"error": "Error activando plan de crisis"}
+    
+    async def handle_neural_status(self, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Muestra análisis completo del sistema neural (solo estilo neural)"""
+        try:
+            from services.adhd_support.context_analyzer import ADHDContextAnalyzer
+            from services.adhd_support.language_formatter import ADHDLanguageFormatter
+            
+            # Analizar patrones completos
+            analyzer = ADHDContextAnalyzer()
+            analysis = await analyzer.analyze_adhd_patterns(user_context["id"])
+            
+            # Formatear en estilo neural
+            formatter = ADHDLanguageFormatter("neural")
+            
+            # Crear reporte detallado
+            status_message = f"""🧠 NEURAL_SYSTEM_ANALYSIS - User ID: {user_context["id"][:8]}
+
+════════════════════════════════════════════
+📊 COGNITIVE_PERFORMANCE_METRICS:
+
+🎯 Attention coherence: {analysis['attention_patterns']['average_focus_duration']:.1f} min avg
+⚡ Energy fluctuations: {analysis['energy_cycles']['energy_consistency']*100:.0f}% consistency
+🏆 Task completion rate: {analysis['completion_patterns']['overall_completion_rate']*100:.0f}%
+🔥 Hyperfocus capability: {'DETECTED' if analysis['hyperfocus_indicators']['hyperfocus_capable'] else 'STANDARD'}
+
+📈 OPTIMIZATION_RECOMMENDATIONS:
+├─ Optimal session length: {analysis['recommendations']['optimal_task_duration']} min
+├─ Peak performance hours: {', '.join(map(str, analysis['attention_patterns']['peak_attention_hours'][:3]))}:00
+├─ Break frequency: {analysis['recommendations']['break_frequency']}
+└─ Crisis support level: {analysis['recommendations']['crisis_support_level'].upper()}
+
+🔄 SYSTEM_STATUS: {'OPTIMAL' if analysis['completion_patterns']['overall_completion_rate'] > 0.7 else 'NEEDS_CALIBRATION'}
+📡 Data points analyzed: {analysis['data_points']}
+⏱️ Last scan: {analysis['analysis_date'][:16]}
+
+💡 Use protocols based on these metrics for maximum efficiency"""
+            
+            return {
+                "type": "neural_status",
+                "message": status_message,
+                "analysis_data": analysis,
+                "language_style": "neural"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error en neural status: {e}")
+            return {"error": "Error obteniendo estado neural"}
+    
+    async def _create_adhd_plan_tasks(self, plan: dict, user_context: Dict[str, Any], is_crisis: bool = False) -> List[dict]:
+        """Crea tareas específicas para planes ADHD"""
+        try:
+            tasks_created = []
+            
+            for task in plan.get('tasks', []):
+                # Crear tarea en formato estándar
+                task_data = {
+                    'type': 'tarea',
+                    'description': task['title'],
+                    'datetime': task['datetime'],
+                    'priority': 'alta' if is_crisis else task.get('priority', 'media'),
+                    'task_category': 'ADHD',
+                    'user_id': user_context['id'],
+                    'adhd_plan_id': plan['id'],
+                    'status': 'pending',
+                    'duration_minutes': task.get('duration_minutes', 5),
+                    'adhd_specific': True,
+                    'crisis_mode': is_crisis,
+                    'language_style': plan.get('language_style', 'natural')
+                }
+                
+                # Crear en BD usando el sistema existente
+                try:
+                    # Usar el servicio Gemini para crear con formato estándar
+                    from core.supabase import supabase
+                    entry = await supabase.create_entry(task_data)
+                    
+                    # Intentar crear en Todoist si hay integración
+                    try:
+                        from services.integrations.integration_manager import integration_manager
+                        todoist_integration = await integration_manager.get_user_integration(user_context['id'], 'todoist')
+                        
+                        if todoist_integration:
+                            # Convertir a formato Todoist
+                            todoist_task_data = {
+                                'type': 'tarea',
+                                'description': task_data['description'],
+                                'datetime': task_data['datetime'],
+                                'priority': task_data['priority'],
+                                'task_category': task_data['task_category']
+                            }
+                            
+                            todoist_id = await todoist_integration.create_task(todoist_task_data)
+                            if todoist_id:
+                                # Actualizar entry con ID de Todoist
+                                await supabase.update_entry_external_id(entry['id'], todoist_id, 'todoist')
+                                
+                    except Exception as todoist_error:
+                        logger.warning(f"No se pudo crear tarea ADHD en Todoist: {todoist_error}")
+                        # Continuar sin Todoist
+                    
+                    tasks_created.append(entry)
+                    
+                except Exception as task_error:
+                    logger.error(f"Error creando tarea ADHD: {task_error}")
+                    continue
+            
+            logger.info(f"✅ Creadas {len(tasks_created)} tareas ADHD para plan {plan['id']}")
+            return tasks_created
+            
+        except Exception as e:
+            logger.error(f"Error creando tareas de plan ADHD: {e}")
+            return []
+    
+    # =============================================================
+    # PREMIUM AND TUTORIAL METHODS
+    # =============================================================
+    
+    async def handle_adhd_tutorial(self, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Maneja el tutorial interactivo ADHD"""
+        try:
+            from services.adhd_support.tutorial_service import tutorial_service
+            return await tutorial_service.start_tutorial(user_context, language_style)
+            
+        except Exception as e:
+            logger.error(f"Error en tutorial ADHD: {e}")
+            return {"error": "Error iniciando tutorial"}
+    
+    async def handle_adhd_trial_activation(self, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Activa trial gratuito de ADHD"""
+        try:
+            from services.adhd_support.tutorial_service import tutorial_service
+            return await tutorial_service.handle_trial_activation(user_context, language_style)
+            
+        except Exception as e:
+            logger.error(f"Error activando trial ADHD: {e}")
+            return {"error": "Error activando trial"}
+    
+    async def handle_adhd_plans(self, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Muestra planes premium disponibles"""
+        try:
+            from services.premium_service import premium_service
+            
+            plans = await premium_service.get_available_plans()
+            status = await premium_service.get_premium_status(user_context["id"])
+            
+            if language_style == "neural":
+                message = """🧠 NEURAL_PREMIUM_MATRIX - Pricing Protocol
+                
+════════════════════════════════════════════
+💎 AVAILABLE_SUBSCRIPTION_TIERS:
+
+🔬 ADHD_MONTHLY_v2.1:
+├─ Price: $9.99/month
+├─ Features: ALL_NEURAL_PROTOCOLS unlocked
+├─ Crisis management: UNLIMITED
+├─ Analytics: REAL_TIME monitoring
+└─ Support: PRIORITY_QUEUE
+
+⚡ ADHD_YEARLY_v2.1 [OPTIMIZED]:
+├─ Price: $99.99/year (2 months FREE)
+├─ Features: MONTHLY + advanced_analytics
+├─ Bonus: Extended system optimization  
+├─ ROI: 17% cost_reduction vs monthly
+└─ Recommended: MAXIMUM_VALUE protocol
+
+🎁 FREE_TRIAL_v1.0:
+├─ Duration: 7 days FULL_ACCESS
+├─ Features: ALL_SYSTEMS unlocked
+├─ Limitation: None during trial period
+└─ Auto-expires: No payment required
+
+⚙️ UPGRADE_PROTOCOL:
+• Contact support for payment processing
+• Manual activation required
+• System auto-upgrades upon confirmation
+
+📊 CURRENT_STATUS:"""
+                
+                if status['premium_active']:
+                    message += f"""
+✅ Premium: ACTIVE
+📅 Expires: {status.get('premium_expires_at', 'Never')[:10]}
+⏰ Days remaining: {status.get('days_remaining', 'Unlimited')}"""
+                elif status['trial_available']:
+                    message += """
+🎁 Trial: AVAILABLE
+⚡ Activate with: /neural-trial"""
+                else:
+                    message += """
+🔒 Status: FREE_TIER
+💡 Upgrade available"""
+            else:
+                message = """🌟 Planes ADHD Premium - Invierte en tu bienestar
+
+Tu cerebro ADHD merece herramientas profesionales.
+
+💝 **Planes disponibles:**
+
+🌅 **Plan Mensual - $9.99/mes**
+• Rutinas ADHD ilimitadas  
+• Gestión de crisis especializada
+• Ambos estilos de lenguaje
+• Análisis personalizado de patrones
+• Soporte prioritario
+
+⚡ **Plan Anual - $99.99/año (¡2 meses gratis!)**
+• Todo del plan mensual
+• Análisis avanzado de productividad
+• Optimización continua de planes
+• 17% de ahorro vs plan mensual
+• **Más popular** 🏆
+
+🎁 **Prueba Gratuita - 7 días**
+• Acceso completo sin límites
+• Todas las funciones desbloqueadas
+• Sin compromisos ni cargos automáticos
+• Cancela cuando quieras
+
+💡 **¿Por qué premium?**
+• Son herramientas especializadas, no genéricas
+• Desarrolladas específicamente para ADHD
+• Tu bienestar mental vale la inversión
+• Mejora medible en productividad y bienestar
+
+📊 **Tu estado actual:**"""
+                
+                if status['premium_active']:
+                    message += f"""
+✅ **Premium activo**
+📅 Expira: {status.get('premium_expires_at', 'Nunca')[:10]}
+⏰ Días restantes: {status.get('days_remaining', 'Ilimitado')}"""
+                elif status['trial_available']:
+                    message += """
+🎁 **Trial disponible**
+⚡ Activa con: `/adhd-trial`"""
+                else:
+                    message += """
+🔒 **Plan gratuito**
+💡 Upgrade disponible
+
+**Para actualizar:** Contacta soporte o visita nuestra página de planes"""
+            
+            return {
+                "type": "adhd_plans",
+                "message": message,
+                "plans": plans,
+                "current_status": status,
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error mostrando planes ADHD: {e}")
+            return {"error": "Error obteniendo planes"}
+    
+    async def handle_premium_status(self, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Muestra estado premium del usuario"""
+        try:
+            from services.premium_service import premium_service
+            
+            status = await premium_service.get_premium_status(user_context["id"])
+            
+            # Determinar estilo de respuesta basado en preferencia
+            language_style = status.get('adhd_language_preference', 'natural')
+            
+            if language_style == "neural":
+                message = f"""🧠 PREMIUM_STATUS_REPORT - User {user_context["id"][:8]}
+                
+════════════════════════════════════════════
+📊 CURRENT_SUBSCRIPTION_STATUS:
+
+🔓 Access Level: {status['plan_type'].upper()}
+✅ Premium Status: {'ACTIVE' if status['premium_active'] else 'INACTIVE'}
+"""
+                
+                if status['premium_active']:
+                    message += f"""📅 Expiration: {status.get('premium_expires_at', 'LIFETIME')[:10]}
+⏰ Days Remaining: {status.get('days_remaining', 'UNLIMITED')}"""
+                
+                if status.get('trial_days_remaining'):
+                    message += f"""
+🎁 Trial Active: {status['trial_days_remaining']} days remaining"""
+                elif status['trial_available']:
+                    message += """
+🎁 Trial Available: 7 days FREE_ACCESS"""
+                
+                message += f"""
+
+📈 ADHD_USAGE_ANALYTICS:
+├─ Plans Created: {status['adhd_stats']['total_adhd_plans']}
+├─ Tasks Generated: {status['adhd_stats']['total_adhd_tasks']}
+├─ Language Mode: {status['adhd_language_preference'].upper()}
+└─ System Optimization: ACTIVE
+
+⚡ Available Commands:
+• /neural-plans - View upgrade options
+• /neural-trial - Activate trial (if available)
+• /neural - Access ADHD protocols"""
+            else:
+                message = f"""🌟 Tu estado premium - Resumen completo
+
+💎 **Plan actual:** {status['plan_type'].title()}
+✅ **Premium activo:** {'Sí' if status['premium_active'] else 'No'}
+"""
+                
+                if status['premium_active']:
+                    message += f"""📅 **Expira:** {status.get('premium_expires_at', 'Nunca')[:10]}
+⏰ **Días restantes:** {status.get('days_remaining', 'Ilimitado')}"""
+                
+                if status.get('trial_days_remaining'):
+                    message += f"""
+🎁 **Trial activo:** {status['trial_days_remaining']} días restantes"""
+                elif status['trial_available']:
+                    message += """
+🎁 **Trial disponible:** 7 días gratis"""
+                
+                message += f"""
+
+📊 **Tu uso de funciones ADHD:**
+• Planes creados: {status['adhd_stats']['total_adhd_plans']}
+• Tareas generadas: {status['adhd_stats']['total_adhd_tasks']}  
+• Estilo preferido: {status['adhd_language_preference'].title()}
+
+🚀 **Comandos disponibles:**
+• `/adhd-planes` - Ver opciones de upgrade
+• `/adhd-trial` - Activar prueba (si disponible)
+• `/adhd` - Acceder a herramientas ADHD"""
+            
+            return {
+                "type": "premium_status",
+                "message": message,
+                "status": status,
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo estado premium: {e}")
+            return {"error": "Error obteniendo estado premium"}
+    
+    async def _handle_premium_required(self, access_check: Dict[str, Any], language_style: str, feature_name: str) -> Dict[str, Any]:
+        """Maneja cuando se requiere premium para una funcionalidad"""
+        
+        reason = access_check['reason']
+        
+        if reason == 'trial_available':
+            if language_style == 'neural':
+                message = f"""🔒 PREMIUM_PROTOCOL_REQUIRED - {feature_name.upper()}
+                
+════════════════════════════════════════════
+⚠️ ACCESS_DENIED: Feature requires premium access
+
+🎁 TRIAL_OPPORTUNITY_DETECTED:
+├─ Duration: 7 days FULL_ACCESS
+├─ Features: ALL_ADHD_PROTOCOLS unlocked  
+├─ Activation: /neural-trial
+└─ Cost: FREE (no payment required)
+
+⚡ ALTERNATIVE_COMMANDS:
+• /neural-trial - Activate trial
+• /neural-plans - View subscription matrix
+• /neural-help - System information"""
+            else:
+                message = f"""🌟 Funcionalidad Premium: {feature_name.title()}
+
+Esta función está diseñada especialmente para usuarios premium.
+
+🎁 **¡Buenas noticias!** Tienes disponible una prueba gratuita:
+
+✨ **Trial de 7 días incluye:**
+• Acceso completo a todas las funciones ADHD
+• Ambos estilos de lenguaje  
+• Rutinas, atención, dopamina y crisis ilimitadas
+• Sin compromisos ni cargos automáticos
+
+🚀 **Para activar:**
+• `/adhd-trial` - Activar prueba gratis
+• `/adhd-planes` - Ver planes disponibles
+• `/adhd-help` - Más información"""
+        
+        elif reason == 'trial_limit_reached':
+            remaining = access_check.get('remaining', 0)
+            if language_style == 'neural':
+                message = f"""⚠️ TRIAL_QUOTA_EXCEEDED - {feature_name.upper()}
+                
+════════════════════════════════════════════
+🔒 Trial limit reached: Maximum protocols created
+
+📊 USAGE_STATUS:
+├─ Trial protocols used: 3/3
+├─ Current access: BASIC_MODE only
+├─ Upgrade required: PREMIUM_SUBSCRIPTION
+└─ Recommendation: FULL_ACTIVATION
+
+⚡ UPGRADE_PROTOCOLS:
+• /neural-plans - View pricing matrix
+• /neural-upgrade - Activate premium access
+• Continue with basic features available"""
+            else:
+                message = f"""🎁 Límite de trial alcanzado
+
+Has usado los 3 planes gratuitos de tu trial para {feature_name}.
+
+💝 **¿Te gustó la experiencia?**
+
+✨ **Con premium tienes:**
+• Planes ADHD ilimitados
+• Todas las funciones desbloqueadas
+• Soporte especializado
+• Inversión mínima en tu bienestar
+
+🚀 **Siguiente paso:**
+• `/adhd-planes` - Ver opciones de precio
+• Puedes seguir usando las funciones básicas"""
+        
+        elif reason == 'premium_required':
+            if language_style == 'neural':
+                message = f"""🔒 PREMIUM_ACCESS_REQUIRED - {feature_name.upper()}
+                
+════════════════════════════════════════════
+⚠️ SYSTEM_RESTRICTION: Advanced ADHD protocols locked
+
+📊 ACCESS_STATUS:
+├─ Trial period: USED
+├─ Current tier: FREE_ACCESS
+├─ Required tier: PREMIUM_SUBSCRIPTION
+└─ Available features: BASIC_ONLY
+
+⚡ UNLOCK_PROTOCOLS:
+• /neural-plans - View subscription options
+• Basic functionality remains available
+• Full optimization requires premium key"""
+            else:
+                message = f"""🔒 Funcionalidad Premium: {feature_name.title()}
+
+Esta función requiere plan premium.
+
+💝 **Las herramientas ADHD especializadas están disponibles con premium:**
+
+✨ **¿Por qué premium?**
+• Herramientas desarrolladas específicamente para ADHD
+• Investigación y desarrollo continuo
+• Tu bienestar mental vale la inversión
+• Mejora medible en productividad
+
+🚀 **Opciones:**
+• `/adhd-planes` - Ver precios y planes
+• Continúa usando las funciones básicas disponibles"""
+        
+        return {
+            "type": "premium_required",
+            "message": message,
+            "reason": reason,
+            "language_style": language_style,
+            "access_check": access_check
+        }
+    
+    async def handle_upgrade_premium(self, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Maneja proceso de upgrade a premium"""
+        try:
+            from services.premium_service import premium_service
+            
+            # Verificar estado actual
+            status = await premium_service.get_premium_status(user_context["id"])
+            
+            if status['premium_active']:
+                if language_style == "neural":
+                    message = """🧠 PREMIUM_STATUS: ALREADY_ACTIVE
+                    
+════════════════════════════════════════════
+✅ System Status: PREMIUM_TIER activated
+
+📅 Current subscription expires: {expires}
+💡 No upgrade required - full access granted
+
+⚙️ Available Commands:
+• /neural-status - View system analytics
+• /neural-plans - Manage subscription""".format(
+                        expires=status.get('premium_expires_at', 'Never')[:10]
+                    )
+                else:
+                    message = f"""✅ Ya tienes premium activo
+
+Tu plan premium está funcionando perfectamente.
+
+📅 **Expira:** {status.get('premium_expires_at', 'Nunca')[:10]}
+⏰ **Días restantes:** {status.get('days_remaining', 'Ilimitado')}
+
+🚀 **Comandos disponibles:**
+• `/adhd-status` - Ver estado completo
+• `/adhd-planes` - Gestionar suscripción"""
+                
+                return {
+                    "type": "already_premium",
+                    "message": message,
+                    "status": status
+                }
+            
+            # Usuario necesita upgrade - mostrar opciones
+            if language_style == "neural":
+                message = """🧠 PREMIUM_UPGRADE_PROTOCOL
+                
+════════════════════════════════════════════
+🔓 UNLOCK_FULL_NEURAL_OPTIMIZATION
+
+💎 UPGRADE_OPTIONS:
+
+⚡ NEURAL_MONTHLY_v2.1:
+├─ Price: $9.99/month
+├─ Billing: Recurring subscription
+├─ Features: ALL_ADHD_PROTOCOLS unlocked
+└─ Activation: Immediate
+
+🚀 NEURAL_YEARLY_v2.1 [OPTIMIZED]:
+├─ Price: $99.99/year (17% savings)
+├─ Billing: Annual subscription  
+├─ Features: MONTHLY + bonus analytics
+└─ Recommended: MAXIMUM_VALUE
+
+⚙️ UPGRADE_PROTOCOLS:
+• /neural-checkout monthly - Start monthly subscription
+• /neural-checkout yearly - Start yearly subscription
+• Manual payment options available
+
+💡 All transactions secured with enterprise encryption"""
+            else:
+                message = """🌟 ¡Upgrade a Premium ADHD!
+
+Lleva tu bienestar mental al siguiente nivel.
+
+💝 **Opciones de upgrade:**
+
+🌅 **Plan Mensual - $9.99/mes**
+• Perfecto para probar a largo plazo
+• Cancela cuando quieras
+• Todas las funciones ADHD desbloqueadas
+
+⚡ **Plan Anual - $99.99/año** (¡Recomendado!)
+• Ahorra $19.89 al año (17% descuento)
+• 2 meses gratis incluidos
+• Análisis avanzado de patrones
+
+🚀 **Para upgradar:**
+• `/adhd-checkout monthly` - Suscripción mensual
+• `/adhd-checkout yearly` - Suscripción anual  
+• También aceptamos pagos manuales
+
+💡 **¿Por qué vale la pena?**
+Tu bienestar mental y productividad mejorarán significativamente con herramientas diseñadas específicamente para ADHD."""
+            
+            return {
+                "type": "upgrade_options",
+                "message": message,
+                "language_style": language_style,
+                "trial_used": status.get('trial_used', False)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error en upgrade premium: {e}")
+            return {"error": "Error procesando upgrade"}
+    
+    async def handle_create_checkout(self, message: str, user_context: Dict[str, Any], language_style: str) -> Dict[str, Any]:
+        """Crea sesión de checkout para upgrade"""
+        try:
+            # Parsear plan seleccionado
+            parts = message.split()
+            plan_type = parts[1] if len(parts) > 1 else 'monthly'
+            
+            if plan_type not in ['monthly', 'yearly']:
+                return {
+                    "error": "Plan inválido. Usa: monthly o yearly"
+                }
+            
+            plan_name = f'adhd_{plan_type}'
+            
+            # Crear checkout usando payment service
+            from services.payment_service import payment_service
+            
+            # URLs de success y cancel (deberás configurar estas en tu app)
+            success_url = os.getenv('APP_BASE_URL', 'https://tu-app.com') + '/payment/success'
+            cancel_url = os.getenv('APP_BASE_URL', 'https://tu-app.com') + '/payment/cancel'
+            
+            checkout_result = await payment_service.create_checkout_session(
+                user_id=user_context["id"],
+                plan_name=plan_name,
+                success_url=success_url,
+                cancel_url=cancel_url
+            )
+            
+            if checkout_result.get('error'):
+                return {"error": checkout_result['error']}
+            
+            # Formatear respuesta según estilo
+            if language_style == "neural":
+                if checkout_result.get('checkout_url'):
+                    message = f"""🧠 CHECKOUT_SESSION_CREATED
+                    
+════════════════════════════════════════════
+✅ Payment gateway: INITIALIZED
+🔗 Secure checkout: READY
+
+⚡ UPGRADE_LINK: 
+{checkout_result['checkout_url']}
+
+🛡️ SECURITY_PROTOCOL:
+├─ Encryption: AES-256
+├─ Provider: Stripe/PayPal
+├─ Session ID: {checkout_result.get('session_id', 'N/A')[:16]}...
+└─ Timeout: 30 minutes
+
+💡 Complete payment to activate NEURAL_PREMIUM"""
+                else:
+                    # Pago manual
+                    message = f"""🧠 MANUAL_PAYMENT_PROTOCOL
+                    
+════════════════════════════════════════════
+💰 Amount: ${checkout_result['amount']} {checkout_result['currency']}
+🔢 Reference: {checkout_result['reference_id']}
+
+{checkout_result['instructions']}
+
+⚡ ACTIVATION_TIME: 24-48 hours after payment verification"""
+            else:
+                if checkout_result.get('checkout_url'):
+                    message = f"""✨ ¡Checkout listo para tu upgrade!
+
+Haz clic en el enlace para completar tu pago seguro:
+
+🔗 **Enlace de pago:** 
+{checkout_result['checkout_url']}
+
+🛡️ **Totalmente seguro:**
+• Procesado por Stripe/PayPal
+• Encriptación de nivel bancario
+• Sin guardar datos de tarjeta
+
+⏰ **Tienes 30 minutos** para completar el pago
+
+💝 **Después del pago:** Tu premium se activa automáticamente"""
+                else:
+                    # Pago manual
+                    message = f"""💝 Información para tu upgrade premium
+
+{checkout_result['instructions']}
+
+✅ **Después de pagar:** Tu premium se activará en 24-48 horas
+📧 **Notificación:** Te avisaremos cuando esté listo"""
+            
+            return {
+                "type": "checkout_created",
+                "message": message,
+                "checkout_data": checkout_result,
+                "language_style": language_style
+            }
+            
+        except Exception as e:
+            logger.error(f"Error creando checkout: {e}")
+            return {"error": "Error creando checkout"}
+    
+    # =============================================================
+    # BASIC PLAN METHODS
+    # =============================================================
+    
+    async def handle_basic_trial_activation(self, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Activa trial gratuito de 3 días para plan básico"""
+        try:
+            from services.premium_service import premium_service
+            
+            trial_result = await premium_service.activate_basic_trial(user_context["id"])
+            
+            if trial_result['success']:
+                message = f"""🎉 ¡Trial básico activado!
+
+Tienes 3 días para probar todas las funciones principales:
+
+✨ **Ahora puedes usar:**
+• Tareas ilimitadas (`/tareas`)
+• Todas las integraciones (`/conectar todoist`)
+• Estadísticas completas (`/stats`)
+• Recordatorios avanzados
+• Gestión de gastos y eventos
+
+📅 **Tu trial expira:** {trial_result['expires_at'][:10]}
+⏰ **Días restantes:** {trial_result['days_remaining']}
+
+🚀 **Para aprovechar tu trial:**
+• Prueba `/conectar todoist` para sincronizar tareas
+• Usa `/stats` para ver análisis completos
+• Crea todas las tareas que necesites
+
+💡 **¿Te gusta?** Usa `/basic-upgrade` para continuar después del trial"""
+                
+                return {
+                    'type': 'basic_trial_activated',
+                    'message': message,
+                    'trial_active': True,
+                    'expires_at': trial_result['expires_at']
+                }
+            else:
+                return {
+                    'type': 'basic_trial_failed',
+                    'message': trial_result['message'],
+                    'reason': trial_result['reason']
+                }
+                
+        except Exception as e:
+            logger.error(f"Error activando trial básico: {e}")
+            return {"error": "Error activando trial básico"}
+    
+    async def handle_basic_upgrade(self, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Muestra opciones de upgrade al plan básico"""
+        try:
+            from services.premium_service import premium_service
+            
+            status = await premium_service.get_premium_status(user_context["id"])
+            
+            # Si ya tiene plan básico o superior
+            if status.get('plan_type') in ['basic_monthly', 'basic_yearly', 'adhd_monthly', 'adhd_yearly']:
+                if status.get('premium_active'):
+                    # Tiene ADHD premium
+                    message = """✅ Ya tienes ADHD Premium
+
+Tu plan actual incluye todas las funciones básicas y ADHD.
+
+🧠 **Tu plan ADHD Premium incluye:**
+• Todo del plan básico
+• + Herramientas ADHD especializadas
+• + Ambos estilos de lenguaje
+• + Gestión de crisis
+• + Análisis de patrones cognitivos
+
+🚀 **Comandos disponibles:**
+• `/adhd-status` - Ver estado completo
+• `/adhd` - Acceder a herramientas ADHD"""
+                else:
+                    # Tiene plan básico
+                    message = f"""✅ Ya tienes el Plan Básico activo
+
+📅 **Expira:** {status.get('premium_expires_at', 'Nunca')[:10]}
+⏰ **Días restantes:** {status.get('days_remaining', 'Ilimitado')}
+
+🚀 **¿Quieres más?** 
+• `/adhd-upgrade` - Upgrade a ADHD Premium ($9.99/mes)
+• Todas las funciones básicas + herramientas ADHD especializadas"""
+                
+                return {
+                    "type": "already_have_basic_or_higher",
+                    "message": message,
+                    "current_plan": status.get('plan_type')
+                }
+            
+            # Usuario necesita upgrade al plan básico
+            message = """💼 Plan Básico - Todo lo que necesitas
+
+Upgrade del plan gratuito limitado al servicio completo.
+
+💝 **Plan Básico incluye:**
+
+✅ **Funcionalidades principales:**
+• Tareas ilimitadas (vs 5/mes en gratuito)
+• Gestión completa de gastos e ingresos
+• Eventos y recordatorios avanzados
+• Estadísticas y análisis detallados
+
+🔗 **Integraciones premium:**
+• Todoist sincronización completa
+• Google Calendar integración
+• Más integraciones en camino
+
+📊 **Analytics avanzados:**
+• Reportes financieros mensuales
+• Análisis de productividad
+• Trends y patrones personalizados
+
+💰 **Precios:**
+• **Mensual:** $4.99/mes
+• **Anual:** $49.99/año (¡2 meses gratis!)
+
+🎁 **¿No estás seguro?**
+• `/basic-trial` - 3 días gratis para probar
+
+🚀 **Para upgradar:**
+• `/basic-checkout monthly` - Plan mensual
+• `/basic-checkout yearly` - Plan anual (recomendado)
+
+💡 **¿Necesitas ADHD?** El Plan ADHD ($9.99/mes) incluye todo esto + herramientas especializadas"""
+            
+            return {
+                "type": "basic_upgrade_options",
+                "message": message,
+                "trial_available": not status.get('basic_trial_used', False)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error en basic upgrade: {e}")
+            return {"error": "Error procesando upgrade básico"}
+    
+    async def handle_create_basic_checkout(self, message: str, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Crea checkout para plan básico"""
+        try:
+            # Parsear plan seleccionado
+            parts = message.split()
+            plan_type = parts[1] if len(parts) > 1 else 'monthly'
+            
+            if plan_type not in ['monthly', 'yearly']:
+                return {
+                    "error": "Plan inválido. Usa: monthly o yearly"
+                }
+            
+            plan_name = f'basic_{plan_type}'
+            
+            # Crear checkout usando payment service
+            from services.payment_service import payment_service
+            
+            success_url = os.getenv('APP_BASE_URL', 'https://tu-app.com') + '/payment/success'
+            cancel_url = os.getenv('APP_BASE_URL', 'https://tu-app.com') + '/payment/cancel'
+            
+            checkout_result = await payment_service.create_checkout_session(
+                user_id=user_context["id"],
+                plan_name=plan_name,
+                success_url=success_url,
+                cancel_url=cancel_url
+            )
+            
+            if checkout_result.get('error'):
+                return {"error": checkout_result['error']}
+            
+            # Formatear respuesta
+            if checkout_result.get('checkout_url'):
+                message = f"""💼 ¡Checkout del Plan Básico listo!
+
+Haz clic en el enlace para completar tu pago seguro:
+
+🔗 **Enlace de pago:** 
+{checkout_result['checkout_url']}
+
+💰 **Plan seleccionado:** {'Mensual $4.99' if plan_type == 'monthly' else 'Anual $49.99 (2 meses gratis)'}
+
+🛡️ **Totalmente seguro:**
+• Procesado por Stripe/PayPal
+• Encriptación de nivel bancario
+• Cancela cuando quieras
+
+⏰ **Tienes 30 minutos** para completar el pago
+
+✅ **Después del pago:** 
+• Acceso inmediato a todas las funciones
+• Tareas y integraciones ilimitadas
+• Soporte por email incluido"""
+            else:
+                # Pago manual
+                message = f"""💼 Información para tu Plan Básico
+
+{checkout_result['instructions']}
+
+✅ **Después de pagar:** Tu plan básico se activará en 24-48 horas
+📧 **Notificación:** Te avisaremos cuando esté listo
+💼 **Acceso:** Todas las funciones principales desbloqueadas"""
+            
+            return {
+                "type": "basic_checkout_created",
+                "message": message,
+                "checkout_data": checkout_result,
+                "plan_type": plan_type
+            }
+            
+        except Exception as e:
+            logger.error(f"Error creando checkout básico: {e}")
+            return {"error": "Error creando checkout básico"}
+    
+    async def handle_plan_status(self, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Muestra estado completo del plan del usuario"""
+        try:
+            from services.premium_service import premium_service
+            
+            status = await premium_service.get_premium_status(user_context["id"])
+            plan_type = status.get('plan_type', 'free')
+            
+            # Determinar qué plan tiene
+            if plan_type == 'free' or plan_type is None:
+                plan_name = "Plan Gratuito"
+                plan_emoji = "🆓"
+                features = ["Máximo 5 tareas/mes", "Comandos básicos", "Soporte limitado"]
+                limitations = "Muchas limitaciones"
+            elif plan_type in ['basic_monthly', 'basic_yearly']:
+                plan_name = f"Plan Básico ({'Mensual' if 'monthly' in plan_type else 'Anual'})"
+                plan_emoji = "💼"
+                features = ["Tareas ilimitadas", "Todas las integraciones", "Estadísticas completas", "Soporte por email"]
+                limitations = "Sin funciones ADHD"
+            elif plan_type in ['adhd_monthly', 'adhd_yearly']:
+                plan_name = f"ADHD Premium ({'Mensual' if 'monthly' in plan_type else 'Anual'})"
+                plan_emoji = "🧠"
+                features = ["Todo del plan básico", "Herramientas ADHD completas", "Ambos estilos de lenguaje", "Gestión de crisis", "Soporte prioritario"]
+                limitations = "Sin limitaciones"
+            elif 'trial' in plan_type:
+                plan_name = f"Trial {'Básico' if 'basic' in plan_type else 'ADHD'}"
+                plan_emoji = "🎁"
+                features = ["Acceso temporal completo", "Todas las funciones desbloqueadas"]
+                limitations = "Expira pronto"
+            else:
+                plan_name = "Plan Desconocido"
+                plan_emoji = "❓"
+                features = []
+                limitations = "Estado no reconocido"
+            
+            # Información de expiración
+            expires_info = ""
+            if status.get('premium_expires_at'):
+                expires_info = f"📅 **Expira:** {status['premium_expires_at'][:10]}\n⏰ **Días restantes:** {status.get('days_remaining', 'N/A')}\n"
+            elif status.get('trial_expires_at'):
+                expires_info = f"🎁 **Trial expira:** {status['trial_expires_at'][:10]}\n⏰ **Días restantes:** {status.get('trial_days_remaining', 'N/A')}\n"
+            
+            # Construir mensaje
+            message = f"""{plan_emoji} **Tu Plan Actual: {plan_name}**
+
+{expires_info}
+✨ **Funciones incluidas:**
+{chr(10).join(f'• {feature}' for feature in features)}
+
+⚠️ **Limitaciones:** {limitations}
+
+📊 **Tu uso:**
+• Planes ADHD creados: {status['adhd_stats']['total_adhd_plans']}
+• Tareas ADHD generadas: {status['adhd_stats']['total_adhd_tasks']}"""
+            
+            # Agregar opciones de upgrade según plan actual
+            if plan_type == 'free':
+                message += f"""
+
+🚀 **Opciones de upgrade:**
+• `/basic-trial` - 3 días de plan básico gratis
+• `/basic-upgrade` - Plan básico ($4.99/mes)
+• `/adhd-trial` - 7 días de ADHD premium gratis
+• `/adhd-upgrade` - ADHD premium ($9.99/mes)"""
+            elif plan_type in ['basic_monthly', 'basic_yearly']:
+                message += f"""
+
+🧠 **¿Quieres más?**
+• `/adhd-upgrade` - Upgrade a ADHD Premium
+• Todas tus funciones actuales + herramientas ADHD especializadas"""
+            
+            return {
+                "type": "plan_status",
+                "message": message,
+                "plan_type": plan_type,
+                "status": status
+            }
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo estado del plan: {e}")
+            return {"error": "Error obteniendo estado del plan"}
 
 # Instancia singleton
 command_handler = CommandHandler()

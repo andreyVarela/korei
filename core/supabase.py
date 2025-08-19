@@ -19,7 +19,7 @@ class SupabaseService:
             try:
                 self.client = create_client(
                     settings.supabase_url,
-                    settings.supabase_service_key
+                    settings.supabase_key
                 )
                 logger.info("Cliente Supabase inicializado")
             except Exception as e:

@@ -1,0 +1,209 @@
+[32m2025-08-18 00:56:19.934[0m | [1mINFO    [0m | [36mservices.reminder_scheduler[0m:[36m__init__[0m:[36m29[0m - [1mReminderScheduler inicializado[0m
+C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pydantic\_internal\_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'fields' has been removed
+  warnings.warn(message, UserWarning)
+INFO:     Will watch for changes in these directories: ['C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [19440] using WatchFiles
+[32m2025-08-18 00:56:20.866[0m | [1mINFO    [0m | [36mservices.reminder_scheduler[0m:[36m__init__[0m:[36m29[0m - [1mReminderScheduler inicializado[0m
+C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pydantic\_internal\_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'fields' has been removed
+  warnings.warn(message, UserWarning)
+INFO:     Started server process [16816]
+INFO:     Waiting for application startup.
+[32m2025-08-18 00:56:20[0m | [1mINFO    [0m | [36mmain[0m:[36mlifespan[0m:[36m29[0m - [1mIniciando Korei Assistant v2.0.0[0m
+[32m2025-08-18 00:56:20[0m | [1mINFO    [0m | [36mmain[0m:[36mlifespan[0m:[36m30[0m - [1mAmbiente: development[0m
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(microseconds=657422), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'start', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 36, 'message': '\u2705 ReminderScheduler iniciado', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 20, 909494, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 120: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(microseconds=658423), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_daily_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 298, 'message': '\U0001f305 Programando mensajes de buenos días...', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 20, 910495, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 143: character maps to <undefined>
+--- End of logging error ---
+[32m2025-08-18 00:56:21[0m | [1mINFO    [0m | [36mcore.supabase[0m:[36m_get_client[0m:[36m24[0m - [1mCliente Supabase inicializado[0m
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=1, microseconds=730614), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'calculate_optimal_morning_time', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 430, 'message': '\U0001f4ca Hora óptima calculada para Usuario: 06:00 (basado en 2 actividades)', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 21, 982686, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ca' in position 146: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=1, microseconds=733122), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_user_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 368, 'message': '\U0001f305 Buenos días programado para Usuario a las 06:00', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 21, 985194, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 142: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=1, microseconds=843482), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'calculate_optimal_morning_time', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 430, 'message': '\U0001f4ca Hora óptima calculada para \U0001f4f8\U0001f4f8: 06:00 (basado en 83 actividades)', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 95554, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ca' in position 146: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=1, microseconds=844485), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_user_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 368, 'message': '\U0001f305 Buenos días programado para \U0001f4f8\U0001f4f8 a las 06:00', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 96557, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 142: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=1, microseconds=965726), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'calculate_optimal_morning_time', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 430, 'message': '\U0001f4ca Hora óptima calculada para Usuario 5678: 10:00 (basado en 2 actividades)', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 217798, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ca' in position 146: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=1, microseconds=966724), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_user_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 368, 'message': '\U0001f305 Buenos días programado para Usuario 5678 a las 10:00', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 218796, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 142: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=112564), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'calculate_optimal_morning_time', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 430, 'message': '\U0001f4ca Hora óptima calculada para González: 06:00 (basado en 6 actividades)', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 364636, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ca' in position 146: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=113567), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_user_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 368, 'message': '\U0001f305 Buenos días programado para González a las 06:00', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 365639, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 142: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=243391), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'calculate_optimal_morning_time', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 430, 'message': '\U0001f4ca Hora óptima calculada para Moi: 10:00 (basado en 4 actividades)', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 495463, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ca' in position 146: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=243391), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_user_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 368, 'message': '\U0001f305 Buenos días programado para Moi a las 10:00', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 495463, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 142: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=357138), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'calculate_optimal_morning_time', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 430, 'message': '\U0001f4ca Hora óptima calculada para Dorival: 06:00 (basado en 1 actividades)', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 609210, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4ca' in position 146: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=358140), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_user_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 368, 'message': '\U0001f305 Buenos días programado para Dorival a las 06:00', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 610212, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f305' in position 142: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=359139), 'exception': None, 'extra': {}, 'file': (name='reminder_scheduler.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\services\\reminder_scheduler.py'), 'function': 'schedule_daily_good_morning', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 306, 'message': '\u2705 Mensajes de buenos días programados para 6 usuarios', 'module': 'reminder_scheduler', 'name': 'services.reminder_scheduler', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 611211, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 143: character maps to <undefined>
+--- End of logging error ---
+--- Logging error in Loguru Handler #3 ---
+Record was: {'elapsed': datetime.timedelta(seconds=2, microseconds=359139), 'exception': None, 'extra': {}, 'file': (name='main.py', path='C:\\Users\\avsol\\OneDrive\\Documents\\App\\korei\\main.py'), 'function': 'lifespan', 'level': (name='INFO', no=20, icon='\u2139\ufe0f'), 'line': 34, 'message': '\u2705 Sistema de recordatorios y mensajes automáticos iniciado', 'module': 'main', 'name': 'main', 'process': (id=16816, name='SpawnProcess-1'), 'thread': (id=29412, name='MainThread'), 'time': datetime(2025, 8, 18, 0, 56, 22, 611211, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=64800), 'Central America Standard Time'))}
+Traceback (most recent call last):
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_handler.py", line 206, in emit
+    self._sink.write(str_record)
+  File "C:\Users\avsol\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\loguru\_simple_sinks.py", line 16, in write
+    self._stream.write(message)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 100: character maps to <undefined>
+--- End of logging error ---
+INFO:     Application startup complete.

@@ -16,8 +16,7 @@ class Settings(BaseSettings):
     
     # Supabase
     supabase_url: str
-    supabase_anon_key: str  
-    supabase_service_key: str
+    supabase_key: str  # Service role key (was supabase_service_key)
     
     # WhatsApp (WAHA) - Legacy
     waha_api_url: Optional[str] = None
@@ -25,8 +24,8 @@ class Settings(BaseSettings):
     waha_session: str = "default"
     
     # WhatsApp Cloud API
-    whatsapp_access_token: str
-    whatsapp_verify_token: str
+    whatsapp_cloud_token: str  # Access token (was whatsapp_access_token)
+    verify_token: str  # Verify token (was whatsapp_verify_token)
     whatsapp_phone_number_id: str
     whatsapp_business_account_id: str
     whatsapp_webhook_secret: Optional[str] = None
@@ -37,7 +36,8 @@ class Settings(BaseSettings):
     
     # Security
     api_key: Optional[str] = None
-    allowed_origins: list[str] = ["*"]
+    secret_key: str  # JWT secret key
+    allowed_origins: str = "*"  # Comma-separated origins
     
     # Optional webhook URL (for documentation/testing)
     webhook_url: Optional[str] = None

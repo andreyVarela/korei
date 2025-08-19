@@ -248,13 +248,44 @@ class GeminiService:
             # Paso 1: Extraer contexto de la imagen
             image_context = await self.extract_image_context(image_data, user_context)
             
-            # Paso 2: Procesar el contexto extraído a través del pipeline normal
+            # Paso 2: ANÁLISIS INTELIGENTE DE TRANSACCIONES
+            transaction_analysis = None
+            if user_context and user_context.get('name'):
+                from services.name_matcher import name_matcher
+                
+                logger.error(f"🔥 CRITICAL - USER NAME FOR ANALYSIS: '{user_context['name']}'")
+                logger.error(f"🔥 CRITICAL - IMAGE CONTEXT: '{image_context}'")
+                
+                # Analizar si es una transacción financiera
+                transaction_analysis = name_matcher.analyze_transaction_direction(
+                    image_context, 
+                    user_context['name']
+                )
+                
+                logger.error(f"🔥 CRITICAL - TRANSACTION_ANALYSIS: {transaction_analysis}")
+            
+            # Paso 3: Construir mensaje mejorado para Gemini
             enhanced_message = f"Información extraída de imagen: {image_context}"
             if context:
                 enhanced_message += f"\nContexto adicional: {context}"
             
+            # Agregar análisis inteligente si existe
+            if transaction_analysis and transaction_analysis.get('type'):
+                confidence = transaction_analysis.get('confidence', 0)
+                reasoning = transaction_analysis.get('reasoning', [])
+                
+                enhanced_message += f"\n\nANÁLISIS INTELIGENTE DE TRANSACCIÓN:"
+                enhanced_message += f"\n- Tipo detectado: {transaction_analysis['type'].upper()} (confianza: {confidence:.1%})"
+                enhanced_message += f"\n- Razonamiento: {', '.join(reasoning)}"
+                
+                if transaction_analysis.get('found_names'):
+                    enhanced_message += f"\n- Nombres encontrados: {transaction_analysis['found_names']}"
+            
             # Usar el pipeline normal de procesamiento de mensajes
-            return await self.process_message(enhanced_message, user_context)
+            logger.error(f"🔥 CRITICAL - ENHANCED MESSAGE TO GEMINI: {enhanced_message}")
+            result = await self.process_message(enhanced_message, user_context)
+            logger.error(f"🔥 CRITICAL - GEMINI FINAL RESULT: {result}")
+            return result
             
         except Exception as e:
             logger.error(f"Error en pipeline de imagen: {e}")
@@ -392,8 +423,59 @@ class GeminiService:
         - recordatorio: Alertas simples para recordar algo
         
         PALABRAS CLAVE PARA IDENTIFICACIÓN DE TIPOS (ESPAÑOL COSTA RICA):
-        GASTO: "gasté", "pagué", "compré", "costó", "salió", "invertí", "gastó", "dinero", "colones", "plata", "caro", "barato", "precio"
-        INGRESO: "gané", "cobré", "recibí", "me pagaron", "ingreso", "salario", "bono", "ganancia", "comisión", "pago", "sueldo"
+        GASTO: "gasté", "pagué", "compré", "costó", "salió", "invertí", "gastó", "dinero", "colones", "plata", "caro", "barato", "precio", "debitaron", "se debita"
+        INGRESO: "gané", "cobré", "recibí", "me pagaron", "ingreso", "salario", "bono", "ganancia", "comisión", "pago", "sueldo", "depositaron", "se deposita", "transferencia recibida"
+        
+        LÓGICA INTELIGENTE PARA COMPROBANTES BANCARIOS/SINPE/FACTURAS:
+        - Usuario propietario: {user_context.get('name', '')} | Tel: {user_context.get('whatsapp_number', '')}
+        
+        **CONTEXTO DE ASISTENTE PERSONAL CRÍTICO:**
+        El usuario envía imágenes por WhatsApp para documentar SUS transacciones financieras.
+        Si el usuario envía una imagen de transferencia, está registrando una transacción que LE AFECTA:
+        
+        - Si la imagen muestra "Transferencia SINPE Móvil A [USUARIO]" → SIEMPRE es INGRESO para el usuario
+        - Si la imagen muestra "Transferencia SINPE Móvil DE [USUARIO]" → SIEMPRE es GASTO para el usuario  
+        - Si la imagen muestra "se debitaron de [OTRA PERSONA]" pero el destino es el USUARIO → es INGRESO para el usuario
+        - PRIORIDAD: El análisis inteligente previo tiene MÁXIMA PRIORIDAD sobre indicadores literales
+        
+        REGLAS CRÍTICAS PARA DETECTAR INGRESO vs GASTO:
+        
+        1. **ANÁLISIS DE NOMBRES (MUY IMPORTANTE)**:
+           - BUSCA nombres de personas en el texto de la imagen
+           - COMPARA con el nombre del usuario (ignorar mayúsculas/minúsculas y nombres medios)
+           - Ejemplos de matching fuzzy:
+             * "NOMBRE COMPLETO USUARIO" = "Nombre Usuario" ✅ MATCH
+             * "MARIA JOSE GONZALEZ RUIZ" = "Maria Gonzalez" ✅ MATCH  
+             * "JUAN CARLOS PEREZ MORA" = "Juan Perez" ✅ MATCH
+             * Ignore diferencias en mayúsculas, acentos y nombres medios
+        
+        2. **PATRONES ESPECÍFICOS DE SINPE MÓVIL**:
+           • "Transferencia SINPE Móvil A [NOMBRE]" = INGRESO si [NOMBRE] es el usuario
+           • "Transferencia SINPE Móvil DE [NOMBRE]" = GASTO si [NOMBRE] es el usuario
+           • "enviaste a [NOMBRE]" = GASTO (el usuario envió)
+           • "recibiste de [NOMBRE]" = INGRESO (el usuario recibió)
+           • "Ref: XXXX" = típico de SINPE, analizar dirección cuidadosamente
+        
+        3. **INDICADORES DE INGRESO (dinero que RECIBE el usuario)**:
+           • "se acreditó", "se depositó", "recibió transferencia"
+           • Usuario aparece como DESTINATARIO/RECEPTOR
+           • Su nombre en "PARA:", "A:", "DESTINATARIO:", "RECEPTOR:"
+           • "cobro", "ingreso", "pago recibido"
+        
+        4. **INDICADORES DE GASTO (dinero que ENVÍA el usuario)**:
+           • "se debitó", "se descontó", "envió transferencia" 
+           • Usuario aparece como EMISOR/REMITENTE
+           • Su nombre en "DE:", "DESDE:", "REMITENTE:", "EMISOR:"
+           • FACTURAS/RECIBOS/TICKETS = siempre GASTO
+           • "pago", "compra", "gasto"
+        
+        5. **EJEMPLOS ESPECÍFICOS**:
+           📥 INGRESO: "💸 Transferencia SINPE Móvil a [NOMBRE_USUARIO] por 10000.00 CRC"
+           📤 GASTO: "💸 Transferencia SINPE Móvil de [NOMBRE_USUARIO] por 5000.00 CRC"
+           📤 GASTO: "Factura Restaurant La Fortuna - Total: ₡15,000"
+           📥 INGRESO: "Depósito a cuenta - Salario Enero - ₡850,000"
+           📥 INGRESO: "Recibo SINPE: María Pérez te envió ₡25,000"
+           📤 GASTO: "Pago realizado a SuperMercado XYZ - Total: ₡12,500"
         EVENTO: "reunión", "cita", "junta", "meeting", "evento", "conferencia", "visita", "llamada", "videollamada", "zoom", "teams"
         TAREA: "tengo que", "debo", "necesito", "hay que", "pendiente", "hacer", "completar", "terminar", "acabar", "finalizar"
         RECORDATORIO: "recordar", "no olvidar", "acordarme", "anotar", "apuntar", "nota mental", "recordatorio"
@@ -450,7 +532,7 @@ class GeminiService:
             "datetime_end": "YYYY-MM-DDTHH:MM:SS-06:00",
             "priority": "alta|media|baja",
             "recurrence": "none|daily|weekly|monthly|yearly",
-            "task_category": "Trabajo|Personal|Ocio" o null,
+            "task_category": "Trabajo|Personal|Ocio" o null (NUNCA uses "Sin categoría"),
             "status": "pending|completed|cancelled"
         }
         """
@@ -508,7 +590,7 @@ class GeminiService:
             if not gastos:
                 return None
             
-            total_gastos = sum(float(g.get('amount', 0)) for g in gastos)
+            total_gastos = sum(float(g.get('amount') or 0) for g in gastos)
             promedio_diario = total_gastos / 7
             
             # Categorías más frecuentes
@@ -520,7 +602,7 @@ class GeminiService:
             categorias_principales = sorted(categorias.keys(), key=lambda x: categorias[x], reverse=True)[:3]
             
             # Último gasto
-            ultimo_gasto = f"₡{float(gastos[0].get('amount', 0)):,.0f} - {gastos[0].get('description', '')}" if gastos else "N/A"
+            ultimo_gasto = f"₡{float(gastos[0].get('amount') or 0):,.0f} - {gastos[0].get('description', '')}" if gastos else "N/A"
             
             return {
                 "total_gastos": total_gastos,

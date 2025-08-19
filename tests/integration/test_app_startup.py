@@ -13,7 +13,7 @@ async def test_app():
     
     print("=== PROBANDO KOREI ASSISTANT ===")
     print(f"Base URL: {base_url}")
-    print(f"WhatsApp Token length: {len(settings.whatsapp_access_token)}")
+    print(f"WhatsApp Token length: {len(settings.whatsapp_cloud_token)}")
     print(f"Phone Number ID: {settings.whatsapp_phone_number_id}")
     print()
     
@@ -36,7 +36,7 @@ async def test_app():
                 params={
                     "hub.mode": "subscribe",
                     "hub.challenge": "test123",
-                    "hub.verify_token": settings.whatsapp_verify_token
+                    "hub.verify_token": settings.verify_token
                 }
             )
             print(f"   OK Status: {response.status_code}")

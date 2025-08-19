@@ -1,0 +1,42 @@
+{
+  "/help": {
+    "status": "SUCCESS",
+    "type": "help",
+    "has_message": true
+  },
+  "/profile": {
+    "status": "SUCCESS",
+    "type": "profile_empty",
+    "has_message": true
+  },
+  "/stats": {
+    "status": "SUCCESS",
+    "type": "stats",
+    "has_message": true
+  },
+  "/tasks": {
+    "status": "SUCCESS",
+    "type": "daily_tasks_empty",
+    "has_message": true
+  },
+  "/events": {
+    "status": "SUCCESS",
+    "type": "daily_events_empty",
+    "has_message": true
+  },
+  "/expenses": {
+    "status": "SUCCESS",
+    "type": "daily_expenses_empty",
+    "has_message": true
+  },
+  "/income": {
+    "status": "SUCCESS",
+    "type": "daily_income_empty",
+    "has_message": true
+  },
+  "/hello": {
+    "status": "SUCCESS",
+    "type": "greeting",
+    "has_message": true
+  }
+}
