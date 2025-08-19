@@ -1,6 +1,64 @@
-- name: Run tests
-  run: |
-    coverage run -m pytest
-    coverage xml
-- name: Upload coverage to Codecov
-  uses: codecov/codecov-action@v4
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: 138.197.41.6
+        username: deploy
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /opt/korei
+          
+          # Backup current version
+          if [ -d "korei-app" ]; then
+            mv korei-app korei-app-backup-$(date +%Y%m%d-%H%M%S)
+          fi
+          
+          # Clone new version
+          git clone https://github.com/${{ github.repository }}.git korei-app
+          cd korei-app
+          
+          # Create .env from secrets
+          cat > .env << EOF
+          APP_NAME=Korei Assistant
+          APP_VERSION=2.0.0
+          ENVIRONMENT=production
+          DEBUG=false
+          PORT=8000
+          
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          
+          WHATSAPP_CLOUD_TOKEN=${{ secrets.WHATSAPP_CLOUD_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID=${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_BUSINESS_ACCOUNT_ID=${{ secrets.WHATSAPP_BUSINESS_ACCOUNT_ID }}
+          VERIFY_TOKEN=${{ secrets.VERIFY_TOKEN }}
+          
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          ALLOWED_ORIGINS=https://api.whatsapp.com
+          TIMEZONE=America/Costa_Rica
+          LOG_LEVEL=INFO
+          EOF
+          
+          # Deploy with Docker
+          docker compose down || true
+          docker compose up -d --build
+          
+          # Cleanup old images
+          docker image prune -f
+          
+          echo "✅ Deploy completed successfully!"

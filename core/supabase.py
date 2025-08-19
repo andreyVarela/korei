@@ -136,9 +136,63 @@ class SupabaseService:
             raise
     
     # Entry methods
+    def _validate_task_category(self, category: str) -> str:
+        """Valida y mapea categorías de tareas a valores válidos del enum"""
+        if not category:
+            return None
+            
+        # Categorías válidas en la base de datos
+        valid_categories = ["Trabajo", "Personal", "Ocio"]
+        
+        # Si ya es válida, devolverla
+        if category in valid_categories:
+            return category
+            
+        # Mapeo de categorías comunes a válidas
+        category_mapping = {
+            "Transporte": "Personal",
+            "Alimentación": "Personal", 
+            "Comida": "Personal",
+            "Entretenimiento": "Ocio",
+            "Diversión": "Ocio",
+            "Deporte": "Personal",
+            "Ejercicio": "Personal",
+            "Salud": "Personal",
+            "Médico": "Personal",
+            "Educación": "Personal",
+            "Estudio": "Personal",
+            "Familia": "Personal",
+            "Compras": "Personal",
+            "Casa": "Personal",
+            "Hogar": "Personal",
+            "Negocios": "Trabajo",
+            "Empresa": "Trabajo",
+            "Oficina": "Trabajo",
+            "Proyecto": "Trabajo",
+            "Reunión": "Trabajo",
+            "Cine": "Ocio",
+            "Música": "Ocio",
+            "Viaje": "Personal",
+            "Vacaciones": "Ocio"
+        }
+        
+        # Intentar mapear
+        mapped = category_mapping.get(category)
+        if mapped:
+            logger.info(f"CATEGORY_MAPPING: '{category}' -> '{mapped}'")
+            return mapped
+            
+        # Si no se puede mapear, usar "Personal" como default
+        logger.warning(f"CATEGORY_UNKNOWN: '{category}' -> 'Personal' (default)")
+        return "Personal"
+
     async def create_entry(self, entry_data: Dict[str, Any]) -> Dict[str, Any]:
         """Crea una entrada"""
         try:
+            # Validar y mapear categoría de tarea si existe
+            if 'task_category' in entry_data and entry_data['task_category']:
+                entry_data['task_category'] = self._validate_task_category(entry_data['task_category'])
+            
             # Asegurar timestamps
             if 'created_at' not in entry_data:
                 entry_data['created_at'] = datetime.now(self.tz).isoformat()
@@ -586,7 +640,7 @@ class SupabaseService:
                 "id": user["id"],
                 "phone": phone,
                 "whatsapp_number": phone,  # Para compatibilidad con message_handler
-                "name": user.get("name", "Usuario"),
+                "name": user.get("display_name", user.get("name", "Usuario")),
                 "profile": {
                     "occupation": profile.get("occupation"),
                     "hobbies": profile.get("hobbies", []),
