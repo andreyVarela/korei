@@ -62,7 +62,26 @@ def get_settings() -> Settings:
     # Force reload .env file
     import os
     from dotenv import load_dotenv
+    
+    # Debug: Print current working directory and .env file existence
+    print(f"🔍 Current working directory: {os.getcwd()}")
+    env_path = os.path.join(os.getcwd(), '.env')
+    print(f"🔍 Looking for .env at: {env_path}")
+    print(f"🔍 .env file exists: {os.path.exists(env_path)}")
+    
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            env_content = f.read()
+            print(f"🔍 .env file content preview (first 200 chars): {env_content[:200]}...")
+    
     load_dotenv(override=True)  # This forces reload
+    
+    # Debug: Print some non-sensitive environment variables
+    print(f"🔍 Environment: {os.getenv('ENVIRONMENT', 'NOT_SET')}")
+    print(f"🔍 SUPABASE_URL set: {'YES' if os.getenv('SUPABASE_URL') else 'NO'}")
+    print(f"🔍 SUPABASE_SERVICE_KEY set: {'YES' if os.getenv('SUPABASE_SERVICE_KEY') else 'NO'}")
+    print(f"🔍 WHATSAPP_ACCESS_TOKEN set: {'YES' if os.getenv('WHATSAPP_ACCESS_TOKEN') else 'NO'}")
+    
     return Settings()
 
 # Create fresh instance every time
