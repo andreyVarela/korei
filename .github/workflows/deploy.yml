@@ -39,12 +39,12 @@ jobs:
           PORT=8000
           
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_KEY }}
           
-          WHATSAPP_CLOUD_TOKEN=${{ secrets.WHATSAPP_CLOUD_TOKEN }}
+          WHATSAPP_ACCESS_TOKEN=${{ secrets.WHATSAPP_CLOUD_TOKEN }}
           WHATSAPP_PHONE_NUMBER_ID=${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
           WHATSAPP_BUSINESS_ACCOUNT_ID=${{ secrets.WHATSAPP_BUSINESS_ACCOUNT_ID }}
-          VERIFY_TOKEN=${{ secrets.VERIFY_TOKEN }}
+          WHATSAPP_VERIFY_TOKEN=${{ secrets.VERIFY_TOKEN }}
           
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           

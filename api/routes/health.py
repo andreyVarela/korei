@@ -40,7 +40,8 @@ async def detailed_health_check() -> Dict[str, Any]:
     config_ok = all([
         settings.supabase_url and settings.supabase_url != "https://tuproyecto.supabase.co",
         settings.gemini_api_key and settings.gemini_api_key.startswith("AIza"),
-        settings.waha_api_key and settings.waha_api_key != "tu_waha_key"
+        settings.whatsapp_cloud_token and len(settings.whatsapp_cloud_token) > 20,
+        settings.verify_token and len(settings.verify_token) > 5
     ])
     
     overall_status = "healthy" if config_ok else "degraded"
