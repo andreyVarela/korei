@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     port: int = 8000
     timezone: str = "America/Costa_Rica"
+    log_level: str = "INFO"
     
     # Supabase
     supabase_url: str
