@@ -2,37 +2,73 @@ version: '3.8'
 
 services:
   korei-api:
-    build: .
+    build:
+      context: .
+      target: production
     container_name: korei-assistant
+    restart: unless-stopped
     ports:
       - "${PORT:-8000}:8000"
     environment:
-      - ENVIRONMENT=development
+      - ENVIRONMENT=production
+      - WORKERS=${WORKERS:-2}
     env_file:
       - .env
     volumes:
-      - ./:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    depends_on:
-      - waha
+      - app-logs:/app/logs
+      - app-temp:/app/temp
     networks:
       - korei-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
 
-  waha:
-    image: devlikeapro/waha:latest
-    container_name: korei-waha
+  # Optional: WAHA service (uncomment if using local WhatsApp)
+  # waha:
+  #   image: devlikeapro/waha:latest
+  #   container_name: korei-waha
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - WAHA_SESSION_NAME=default
+  #     - WAHA_API_KEY=${WAHA_API_KEY}
+  #   volumes:
+  #     - waha-sessions:/app/sessions
+  #   networks:
+  #     - korei-network
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: korei-nginx
+    restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      - WAHA_SESSION_NAME=default
-      - WAHA_API_KEY=${WAHA_API_KEY}
+      - "80:80"
+      - "443:443"
     volumes:
-      - waha-sessions:/app/sessions
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - korei-api
     networks:
       - korei-network
 
 volumes:
-  waha-sessions:
+  app-logs:
+  app-temp:
+  # waha-sessions:
 
 networks:
   korei-network:

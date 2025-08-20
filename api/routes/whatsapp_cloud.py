@@ -78,7 +78,7 @@ async def verify_webhook(
     # Verificar que sea una verificación válida
     if hub_mode == "subscribe":
         # Verificar token (configúralo en settings)
-        expected_token = getattr(settings, 'whatsapp_verify_token', 'korei_webhook_token_2024')
+        expected_token = getattr(settings, 'verify_token', 'korei_webhook_token_2024')
         
         if hub_verify_token == expected_token:
             logger.info("✅ Webhook verification successful")
@@ -194,8 +194,8 @@ async def process_text_message(phone_number: str, message_text: str, contact_nam
         logger.info(f"TEXT MODULE: Starting processing for {phone_number}")
         logger.info(f"TEXT MODULE: Message: {message_text}")
         
-        # Obtener o crear usuario en Supabase
-        user = await get_or_create_user(phone_number, contact_name)
+        # Obtener o crear usuario en Supabase con contexto completo (incluye perfil)
+        user = await supabase.get_user_with_context(phone_number)
         logger.info(f"TEXT MODULE: User obtained/created: {user.get('id', 'temp')}")
         
         # PIPELINE UNIFICADO: Usar el MessageHandler que ya funciona
@@ -218,8 +218,8 @@ async def process_image_message(phone_number: str, message_data: dict, contact_n
     try:
         logger.info(f"IMAGE MODULE: Starting processing for {phone_number}")
         
-        # Obtener o crear usuario en Supabase
-        user = await get_or_create_user(phone_number, contact_name)
+        # Obtener o crear usuario en Supabase con contexto completo (incluye perfil)
+        user = await supabase.get_user_with_context(phone_number)
         logger.info(f"IMAGE MODULE: User obtained/created: {user.get('id', 'temp')}")
         
         # Extraer datos de imagen
@@ -251,8 +251,8 @@ async def process_audio_message(phone_number: str, message_data: dict, contact_n
     try:
         logger.info(f"AUDIO MODULE: Starting processing for {phone_number}")
         
-        # Obtener o crear usuario en Supabase
-        user = await get_or_create_user(phone_number, contact_name)
+        # Obtener o crear usuario en Supabase con contexto completo (incluye perfil)
+        user = await supabase.get_user_with_context(phone_number)
         logger.info(f"AUDIO MODULE: User obtained/created: {user.get('id', 'temp')}")
         
         # Extraer datos de audio/voice
@@ -282,8 +282,8 @@ async def process_interactive_message(phone_number: str, message_data: dict, con
     try:
         logger.info(f"INTERACTIVE MODULE: Starting processing for {phone_number}")
         
-        # Obtener o crear usuario en Supabase
-        user = await get_or_create_user(phone_number, contact_name)
+        # Obtener o crear usuario en Supabase con contexto completo (incluye perfil)
+        user = await supabase.get_user_with_context(phone_number)
         logger.info(f"INTERACTIVE MODULE: User obtained/created: {user.get('id', 'temp')}")
         
         # Extraer datos del mensaje interactivo
@@ -608,7 +608,7 @@ async def send_message_simple(phone_number: str, message: str):
         import httpx
         
         # Clean token (remove any extra spaces or newlines)
-        clean_token = settings.whatsapp_access_token.strip()
+        clean_token = settings.whatsapp_cloud_token.strip()
         
         url = f"https://graph.facebook.com/v18.0/{settings.whatsapp_phone_number_id}/messages"
         headers = {
@@ -856,7 +856,7 @@ async def send_whatsapp_message(
         
         # Headers
         headers = {
-            "Authorization": f"Bearer {settings.whatsapp_access_token}",
+            "Authorization": f"Bearer {settings.whatsapp_cloud_token}",
             "Content-Type": "application/json"
         }
         
@@ -919,7 +919,7 @@ async def get_media_url(media_id: str) -> str:
         import aiohttp
         
         url = f"https://graph.facebook.com/v18.0/{media_id}"
-        headers = {"Authorization": f"Bearer {settings.whatsapp_access_token}"}
+        headers = {"Authorization": f"Bearer {settings.whatsapp_cloud_token}"}
         
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as response:
@@ -937,7 +937,7 @@ async def download_media(media_url: str) -> bytes:
     try:
         import aiohttp
         
-        headers = {"Authorization": f"Bearer {settings.whatsapp_access_token}"}
+        headers = {"Authorization": f"Bearer {settings.whatsapp_cloud_token}"}
         
         async with aiohttp.ClientSession() as session:
             async with session.get(media_url, headers=headers) as response:
@@ -990,9 +990,10 @@ async def get_or_create_user(phone_number: str, contact_name: str) -> dict:
     except Exception as e:
         logger.error(f"Error getting/creating user: {e}")
         # Retornar un usuario temporal en caso de error
+        safe_phone = ''.join(filter(str.isdigit, phone_number)) if phone_number else "unknown"
         return {
             "id": None,
-            "whatsapp_number": clean_phone,
+            "whatsapp_number": safe_phone,
             "display_name": contact_name or "Usuario Temporal",
             "is_active": True
         }
@@ -1032,15 +1033,15 @@ async def test_connection():
     """
     try:
         # DEBUG: Log token info
-        logger.info(f"DEBUG Token length: {len(settings.whatsapp_access_token)}")
-        logger.info(f"DEBUG Token start: {settings.whatsapp_access_token[:50]}...")
+        logger.info(f"DEBUG Token length: {len(settings.whatsapp_cloud_token)}")
+        logger.info(f"DEBUG Token start: {settings.whatsapp_cloud_token[:50]}...")
         logger.info(f"DEBUG Phone ID: {settings.whatsapp_phone_number_id}")
         
         # Hacer una petición simple para verificar credenciales
         import httpx
         
         url = f"https://graph.facebook.com/v18.0/{settings.whatsapp_phone_number_id}"
-        clean_token = settings.whatsapp_access_token.strip()
+        clean_token = settings.whatsapp_cloud_token.strip()
         headers = {
             "Authorization": f"Bearer {clean_token}",
         }

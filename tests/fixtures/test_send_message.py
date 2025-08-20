@@ -8,7 +8,7 @@ from app.config import get_settings
 
 async def test_send_message():
     settings = get_settings()
-    token = settings.whatsapp_access_token.strip()
+    token = settings.whatsapp_cloud_token.strip()
     phone_id = settings.whatsapp_phone_number_id
     
     print(f"Testing message send:")

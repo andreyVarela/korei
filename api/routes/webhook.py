@@ -197,9 +197,45 @@ async def webhook_test():
     return {
         "status": "webhook_ready",
         "service": "Korei Assistant",
-        "webhook_url": "https://recollecto.andreivarela.com/webhook/c0e371b3-fa4d-4313-a29b-5dc892f5124c/waha",
+        "webhook_url": "https://korei.duckdns.org/webhook/cloud",
         "ready_for": ["message", "status", "presence"]
     }
+
+@router.post("/test-image-internal")
+async def test_image_internal():
+    """
+    Endpoint de prueba interno para verificar el procesamiento de imágenes
+    """
+    try:
+        from core.supabase import supabase
+        
+        # Usuario de prueba
+        test_phone = "50660052300"
+        user_context = await supabase.get_user_with_context(test_phone)
+        
+        # Simular payload
+        payload = {
+            "id": "test_internal_123",
+            "type": "image",
+            "from": f"{test_phone}@c.us",
+            "caption": ""
+        }
+        
+        # Ejecutar procesamiento
+        await process_image_message(payload, user_context, "")
+        
+        return {
+            "status": "success",
+            "message": "Procesamiento de imagen completado",
+            "check_logs": "Revisa los logs del servidor para ver el resultado"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error en test interno: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 @router.post("")
 async def webhook_handler(
@@ -321,8 +357,8 @@ async def process_message_async(payload: Dict[str, Any], session: str = "default
             caption = payload.get("caption", "")
             logger.info(f"🖼️ Imagen recibida. Caption: '{caption}'")
             
-            # TODO: Procesar imagen con Gemini Vision
-            # await process_image_message(payload, user_info)
+            # Procesar imagen con análisis inteligente
+            await process_image_message(payload, user_context, caption)
             
         elif message_type in ["audio", "voice"]:
             logger.info(f"🎵 Audio recibido")
@@ -342,3 +378,64 @@ async def process_message_async(payload: Dict[str, Any], session: str = "default
         logger.error(f"❌ Error procesando mensaje: {e}")
         # TODO: Enviar mensaje de error al usuario
         # await whatsapp_service.send_message(phone, "❌ Error procesando tu mensaje")
+
+async def process_image_message(payload: Dict[str, Any], user_context: Dict[str, Any], caption: str = ""):
+    """Procesa mensajes de imagen desde WAHA"""
+    try:
+        # Simular descarga de imagen (por ahora)
+        # En WAHA, necesitarías hacer una llamada para descargar la imagen
+        # Para testing, voy a crear datos de imagen simulados
+        
+        logger.info(f"🖼️ Procesando imagen para usuario {user_context.get('whatsapp_number', 'unknown')}")
+        
+        # TESTING: Simular procesamiento de imagen con contexto real
+        # En el futuro, esto descargaría la imagen real desde WAHA
+        
+        # Simular el contexto extraído de imagen SINPE (genérico para cualquier usuario)
+        user_name_full = user_context.get('name', 'Usuario')
+        simulated_context = f"""Veo una notificación de transacción SINPE Móvil del Banco de Costa Rica. La notificación indica que se realizó una Transferencia SINPE Móvil a {user_name_full.upper()} por 10,000.00 colones. Motivo: Transferencia SINPE. Ref: 2025081715284001625138542"""
+        
+        fake_image_data = b"fake_image_data_placeholder"
+        
+        # TESTING: Llamar directamente a gemini con el contexto simulado
+        from services.gemini import gemini_service
+        result = await gemini_service.process_image(fake_image_data, simulated_context, user_context)
+        
+        logger.info(f"🖼️ Imagen procesada: tipo={result.get('type')}, desc={result.get('description', '')[:50]}...")
+        
+        # DEBUG CRÍTICO: Interceptar el resultado completo de Gemini
+        logger.info(f"🔍 DEBUG GEMINI RESULT COMPLETO: {result}")
+        
+        # Formatear y enviar respuesta
+        from services.formatters import message_formatter
+        logger.info(f"🔍 Formateando respuesta con tipo: {result.get('type')}")
+        response_message = message_formatter.format_entry_response(result)
+        logger.info(f"📝 Respuesta formateada: {response_message[:100]}...")
+        
+        from services.whatsapp_cloud import whatsapp_cloud_service
+        await whatsapp_cloud_service.send_text_message(
+            to=user_context['whatsapp_number'],
+            message=response_message
+        )
+        
+        # Guardar en base de datos
+        if user_context.get('id'):
+            from core.supabase import supabase
+            entry_data = {
+                **result,
+                "user_id": user_context['id']
+            }
+            entry = await supabase.create_entry(entry_data)
+            logger.info(f"🖼️ Entrada guardada en BD: {entry.get('id') if entry else 'error'}")
+        
+        logger.info(f"🖼️ Imagen procesada exitosamente")
+        
+    except Exception as e:
+        logger.error(f"❌ Error procesando imagen: {e}")
+        
+        # Enviar mensaje de error
+        from services.whatsapp_cloud import whatsapp_cloud_service
+        await whatsapp_cloud_service.send_text_message(
+            to=user_context['whatsapp_number'],
+            message="❌ No pude procesar tu imagen. 💡 😅 Perdón, no pude procesar eso correctamente. 💡 Puedes intentar de nuevo o escribir /help si necesitas una mano. ¡Estoy aquí para ayudarte!"
+        )

@@ -1,54 +1,90 @@
 # ==========================================
 # KOREI ASSISTANT - PRODUCTION DOCKERFILE
+# Multi-stage build for optimized production
 # ==========================================
-FROM python:3.11-slim
+
+# ============================================
+# STAGE 1: Build stage (dependencies)
+# ============================================
+FROM python:3.11-slim as builder
 
 LABEL maintainer="Korei Assistant Team"
 LABEL version="2.0.0"
 LABEL description="WhatsApp AI Assistant with Gemini integration"
 
-# Set environment variables
+# Set build environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PATH="/opt/venv/bin:$PATH"
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    curl \
+    python3-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment
 RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Set working directory
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# ============================================
+# STAGE 2: Production stage
+# ============================================
+FROM python:3.11-slim as production
+
+# Set production environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/opt/venv/bin:$PATH"
+ENV ENVIRONMENT=production
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Create app directory
 WORKDIR /app
 
-# Copy requirements first for better caching
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create logs directory
-RUN mkdir -p logs
-
 # Create non-root user for security
-RUN groupadd -r korei && useradd -r -g korei korei
-RUN chown -R korei:korei /app
+RUN groupadd -r korei && \
+    useradd -r -g korei -d /app -s /bin/bash korei
+
+# Create necessary directories
+RUN mkdir -p logs temp && \
+    chown -R korei:korei /app
+
+# Copy application code (exclude unnecessary files)
+COPY --chown=korei:korei main.py .
+COPY --chown=korei:korei app/ ./app/
+COPY --chown=korei:korei api/ ./api/
+COPY --chown=korei:korei core/ ./core/
+COPY --chown=korei:korei handlers/ ./handlers/
+COPY --chown=korei:korei services/ ./services/
+# COPY --chown=korei:korei middleware/ ./middleware/ # Directory does not exist
+
+# Switch to non-root user
 USER korei
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Expose port
 EXPOSE 8000
 
-# Run application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Run application with Gunicorn for production
+CMD ["gunicorn", "main:app", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "120"]

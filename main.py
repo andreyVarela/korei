@@ -8,7 +8,7 @@ from loguru import logger
 import sys
 
 from app.config import settings
-from api.routes import webhook, stats, health, integrations, whatsapp_cloud
+from api.routes import webhook, stats, health, integrations, whatsapp_cloud, payment_webhook
 from api.middleware import LoggingMiddleware, ErrorHandlerMiddleware
 from services.reminder_scheduler import reminder_scheduler
 
@@ -55,9 +55,11 @@ app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 if settings.debug:
+    # Parse allowed_origins string to list
+    origins = [origin.strip() for origin in settings.allowed_origins.split(',') if origin.strip()]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.allowed_origins,
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -67,6 +69,7 @@ if settings.debug:
 app.include_router(health.router, tags=["Health"])
 app.include_router(webhook.router, prefix="/webhook", tags=["WhatsApp WAHA"])
 app.include_router(whatsapp_cloud.router, prefix="/webhook/cloud", tags=["WhatsApp Cloud API"])
+app.include_router(payment_webhook.router, prefix="/webhook/payment", tags=["Payment Webhooks"])
 app.include_router(stats.router, prefix="/api/stats", tags=["Statistics"])
 app.include_router(integrations.router, prefix="/api", tags=["Integrations"])
 

@@ -219,6 +219,13 @@ Estoy aquí para ayudarte a organizar tu vida de forma súper fácil. Solo hábl
 • `/conectar todoist` - Conectar Todoist
 • `/integraciones` - Ver qué tienes conectado
 
+🧠 **Soporte ADHD especializado:**
+• `/adhd-tutorial` - Tutorial completo del sistema ADHD
+• `/adhd` - Herramientas diseñadas para tu cerebro ADHD
+• `/neural` - Modo "Neural Hacking" con terminología técnica 
+• `/adhd-trial` - Prueba gratuita de 7 días (funciones premium)
+• Rutinas, atención, dopamina y apoyo para días difíciles
+
 💡 **Pro tip:** Mientras más me uses, mejor te entiendo y más útil soy para ti. ¡Hablemos!"""
     
     def format_stats_message(self, stats: Dict[str, Any]) -> str:

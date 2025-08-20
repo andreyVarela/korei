@@ -1,0 +1,35 @@
+version: '3.8'
+
+# Development Docker Compose
+# Use: docker-compose -f docker-compose.dev.yml up
+
+services:
+  korei-api:
+    build:
+      context: .
+      target: production  # Still use production target but with dev overrides
+    container_name: korei-assistant-dev
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=development
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+      - /app/__pycache__  # Exclude pycache
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - korei-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  app-logs:
+
+networks:
+  korei-network:
+    driver: bridge

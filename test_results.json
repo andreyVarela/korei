@@ -1,0 +1,207 @@
+[
+  {
+    "command": "/register",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4dd' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/registro",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4dd' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/profile",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/perfil",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/help",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u2728' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/ayuda",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u2728' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/stats",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4ca' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/estadisticas",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4ca' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tareas",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tasks",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tareas-hoy",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tasks-today",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tareas-mañana",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tasks-tomorrow",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/eventos",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/events",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/eventos-hoy",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/events-today",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/eventos-mañana",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/events-tomorrow",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/gastos",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/expenses",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/gastos-hoy",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/expenses-today",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/ingresos",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/income",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/ingresos-hoy",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/income-today",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/resumen-mes",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/monthly-summary",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\u274c' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/tips-finanzas",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4a1' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/financial-tips",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4a1' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/analisis-gastos",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4ca' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/spending-analysis",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4ca' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/hola",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f44b' in position 19: character maps to <undefined>"
+  },
+  {
+    "command": "/hello",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f44b' in position 19: character maps to <undefined>"
+  },
+  {
+    "command": "/inicio",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f44b' in position 19: character maps to <undefined>"
+  },
+  {
+    "command": "/recordatorio",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f514' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/reminder",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f514' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/proyectos",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4c2' in position 12: character maps to <undefined>"
+  },
+  {
+    "command": "/projects",
+    "status": "error",
+    "error": "'charmap' codec can't encode character '\\U0001f4c2' in position 12: character maps to <undefined>"
+  }
+]

@@ -18,7 +18,7 @@ class WhatsAppCloudService:
         """Get fresh headers with current token"""
         from app.config import get_settings
         current_settings = get_settings()
-        clean_token = current_settings.whatsapp_access_token.strip()
+        clean_token = current_settings.whatsapp_cloud_token.strip()
         return {
             "Authorization": f"Bearer {clean_token}",
             "Content-Type": "application/json"

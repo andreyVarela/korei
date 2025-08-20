@@ -13,11 +13,12 @@ class Settings(BaseSettings):
     environment: str = "development"
     port: int = 8000
     timezone: str = "America/Costa_Rica"
+    log_level: str = "INFO"
     
     # Supabase
     supabase_url: str
-    supabase_anon_key: str  
-    supabase_service_key: str
+    supabase_service_key: str  # Service role key
+    supabase_anon_key: Optional[str] = None  # Optional anon key
     
     # WhatsApp (WAHA) - Legacy
     waha_api_url: Optional[str] = None
@@ -25,8 +26,8 @@ class Settings(BaseSettings):
     waha_session: str = "default"
     
     # WhatsApp Cloud API
-    whatsapp_access_token: str
-    whatsapp_verify_token: str
+    whatsapp_access_token: str  # Access token
+    whatsapp_verify_token: str  # Verify token
     whatsapp_phone_number_id: str
     whatsapp_business_account_id: str
     whatsapp_webhook_secret: Optional[str] = None
@@ -37,7 +38,8 @@ class Settings(BaseSettings):
     
     # Security
     api_key: Optional[str] = None
-    allowed_origins: list[str] = ["*"]
+    secret_key: Optional[str] = None  # JWT secret key (made optional)
+    allowed_origins: str = "*"  # Single string for simplicity
     
     # Optional webhook URL (for documentation/testing)
     webhook_url: Optional[str] = None
@@ -51,7 +53,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=False
+        case_sensitive=False,
+        extra="ignore"
     )
 
 def get_settings() -> Settings:

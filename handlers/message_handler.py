@@ -13,6 +13,7 @@ from services.whatsapp_cloud import whatsapp_cloud_service
 from services.gemini import gemini_service
 from handlers.command_handler import command_handler
 from services.reminder_scheduler import reminder_scheduler
+from services.formatters import message_formatter
 
 class MessageHandler:
     def __init__(self):
@@ -20,18 +21,28 @@ class MessageHandler:
     
     async def verify_user_and_payment(self, user: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Verifica que el usuario exista y tenga el pago al día
+        Verifica que el usuario exista y tenga acceso básico
+        Ahora usa el nuevo sistema de planes (FREE/BASIC/ADHD)
         
         Returns:
             Dict con is_valid (bool) y message (str)
         """
         try:
+            # Verificar que user no sea None
+            if user is None:
+                return {
+                    'is_valid': False,
+                    'message': "❌ **Error de usuario**\n\n🔒 No se pudo obtener información del usuario.\n\n💬 Envía `/register` para crear tu cuenta."
+                }
             # Verificar si el usuario tiene ID (significa que existe en la DB)
             if not user.get('id'):
                 return {
                     'is_valid': False,
-                    'message': "❌ **Usuario no encontrado**\n\n🔒 Para usar Korei Assistant necesitas estar registrado.\n\n💬 Contacta al administrador para obtener acceso."
+                    'message': "❌ **Usuario no encontrado**\n\n🔒 Para usar Korei Assistant necesitas estar registrado.\n\n💬 Envía `/register` para crear tu cuenta."
                 }
+            
+            # Con el nuevo sistema, todos los usuarios registrados tienen acceso básico
+            # La verificación de límites se hace por función específica
             
             # Obtener datos completos del usuario desde la base de datos
             try:
@@ -42,18 +53,12 @@ class MessageHandler:
                         'message': "❌ **Usuario no encontrado en la base de datos**\n\n💬 Contacta al administrador para verificar tu cuenta."
                     }
                 
-                # Verificar estado de pago
-                payment_status = user_data.get('payment', False)
-                if not payment_status:
-                    return {
-                        'is_valid': False,
-                        'message': "💳 **Pago pendiente**\n\n❌ Tu suscripción no está al día.\n\n💰 Para continuar usando Korei Assistant, actualiza tu pago.\n\n📞 Contacta al administrador para más información."
-                    }
-                
-                # Usuario válido y con pago al día
+                # NUEVO SISTEMA: Todos los usuarios registrados pueden usar el sistema
+                # Los límites se verifican por función específica
                 return {
                     'is_valid': True,
-                    'message': "Usuario válido"
+                    'message': "Usuario válido",
+                    'plan_type': user_data.get('plan_type', 'free')
                 }
                 
             except Exception as db_error:
@@ -73,18 +78,26 @@ class MessageHandler:
     async def handle_text(self, message: str, user: Dict[str, Any]) -> Dict[str, Any]:
         """Procesa mensajes de texto"""
         try:
-            # VERIFICACIÓN DE USUARIO Y PAGO
-            user_verification = await self.verify_user_and_payment(user)
-            if not user_verification['is_valid']:
-                await whatsapp_cloud_service.send_text_message(
-                    to=user['whatsapp_number'],
-                    message=user_verification['message']
-                )
-                return {"status": "error", "message": user_verification['message']}
+            # 🔒 SEGURIDAD ULTRA ESTRICTA: SOLO /register para no registrados
+            message_clean = message.strip()
+            is_register_command = message_clean.startswith('/register') or message_clean.startswith('/registro')
             
+            # Verificar si el usuario está registrado
+            user_verification = await self.verify_user_and_payment(user)
+            
+            if not user_verification['is_valid']:
+                # Si no está registrado, SOLO permitir /register
+                if is_register_command:
+                    return await self.handle_command(message_clean, user)
+                else:
+                    # SILENCIO TOTAL - No responder nada
+                    logger.warning(f"ACCESO DENEGADO SILENCIOSO - Usuario no registrado: {user.get('whatsapp_number', 'unknown')} - Mensaje: {message_clean[:50]}")
+                    return {"status": "silent_denial", "message": "Usuario no registrado - sin respuesta"}
+            
+            # Si está registrado, permitir acceso normal
             # Detectar si es un comando
-            if message.strip().startswith('/'):
-                return await self.handle_command(message.strip(), user)
+            if message_clean.startswith('/'):
+                return await self.handle_command(message_clean, user)
             
             # FILTRO INTELIGENTE: Detectar intención antes de procesar con Gemini
             intent_result = await self.detect_user_intent(message, user)
@@ -93,6 +106,23 @@ class MessageHandler:
             
             # Procesar con Gemini solo si es contenido real
             result = await gemini_service.process_message(message, user)
+            
+            # VERIFICAR LÍMITES DEL PLAN ANTES DE CREAR TAREAS
+            if result.get('type') == 'tarea' and user.get('id'):
+                from middleware.plan_verification import check_task_creation_limit
+                limit_check = await check_task_creation_limit(user)
+                
+                if not limit_check.get('can_create', True):
+                    # Usuario ha alcanzado el límite - enviar mensaje de upgrade
+                    await whatsapp_cloud_service.send_text_message(
+                        to=user['whatsapp_number'],
+                        message=limit_check['upgrade_message']
+                    )
+                    return {"status": "limit_reached", "message": "Límite de tareas alcanzado"}
+                elif limit_check.get('warning_message'):
+                    # Mostrar advertencia pero continuar
+                    logger.info(f"PLAN-WARNING: {limit_check['warning_message']}")
+                    # Opcional: agregar advertencia al mensaje de respuesta
             
             # NUEVA FUNCIONALIDAD: Revisar disponibilidad ANTES de crear evento
             if result.get('type') == 'evento' and user.get('id'):
@@ -199,7 +229,7 @@ class MessageHandler:
                         logger.error(f"AUTO-SYNC ERROR: {sync_error}")
             
             # Enviar respuesta usando WhatsApp Cloud API
-            response = whatsapp_service.format_response(result)
+            response = message_formatter.format_entry_response(result)
             
             # Log response details
             logger.info("=" * 50)
@@ -225,7 +255,6 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error procesando texto: {e}")
             
-            from services.formatters import message_formatter
             error_message = message_formatter.format_error_message(str(e))
             await whatsapp_cloud_service.send_text_message(
                 to=user['whatsapp_number'],
@@ -277,7 +306,6 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error procesando comando: {e}")
             
-            from services.formatters import message_formatter
             error_message = message_formatter.format_error_message("comando")
             await whatsapp_cloud_service.send_text_message(
                 to=user['whatsapp_number'],
@@ -290,16 +318,14 @@ class MessageHandler:
                           user: Dict[str, Any]) -> Dict[str, Any]:
         """Procesa mensajes de audio usando pipeline de dos pasos"""
         try:
-            # VERIFICACIÓN DE USUARIO Y PAGO
+            # 🔒 SEGURIDAD ULTRA ESTRICTA: Solo usuarios registrados pueden enviar audio
             user_verification = await self.verify_user_and_payment(user)
             if not user_verification['is_valid']:
-                await whatsapp_cloud_service.send_text_message(
-                    to=user['whatsapp_number'],
-                    message=user_verification['message']
-                )
-                return {"status": "error", "message": user_verification['message']}
+                # SILENCIO TOTAL - No responder a audio de usuarios no registrados
+                logger.warning(f"ACCESO DENEGADO SILENCIOSO - Audio de usuario no registrado: {user.get('whatsapp_number', 'unknown')}")
+                return {"status": "silent_denial", "message": "Usuario no registrado - sin respuesta"}
                 
-            await whatsapp_service.send_typing(user['whatsapp_number'])
+            # await whatsapp_cloud_service.send_typing(user['whatsapp_number'])  # Comentado temporalmente para debug
             
             # DEBUG: Ver estructura exacta del mensaje
             logger.info(f"AUDIO-DEBUG: message_data structure: {message_data}")
@@ -455,7 +481,7 @@ class MessageHandler:
             
             # RESPUESTA SIMPLIFICADA (FUNCIONAL)
             response = f"🎤 **Audio recibido y procesado:**\n\n"
-            response += whatsapp_service.format_response(result)
+            response += message_formatter.format_entry_response(result)
             
             # Log response details
             logger.info("=== AUDIO PROCESSING COMPLETE ===")
@@ -473,7 +499,6 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error procesando audio: {e}")
             
-            from services.formatters import message_formatter
             error_message = f"❌ No pude procesar tu audio.\n\n💡 {message_formatter.format_error_message('audio')}"
             await whatsapp_cloud_service.send_text_message(
                 to=user['whatsapp_number'],
@@ -486,23 +511,90 @@ class MessageHandler:
                           user: Dict[str, Any]) -> Dict[str, Any]:
         """Procesa imágenes con Gemini Vision usando pipeline de dos pasos"""
         try:
-            # VERIFICACIÓN DE USUARIO Y PAGO
+            # 🔒 SEGURIDAD ULTRA ESTRICTA: Solo usuarios registrados pueden enviar imágenes
             user_verification = await self.verify_user_and_payment(user)
             if not user_verification['is_valid']:
-                await whatsapp_cloud_service.send_text_message(
-                    to=user['whatsapp_number'],
-                    message=user_verification['message']
-                )
-                return {"status": "error", "message": user_verification['message']}
+                # SILENCIO TOTAL - No responder a imágenes de usuarios no registrados
+                logger.warning(f"ACCESO DENEGADO SILENCIOSO - Imagen de usuario no registrado: {user.get('whatsapp_number', 'unknown')}")
+                return {"status": "silent_denial", "message": "Usuario no registrado - sin respuesta"}
                 
-            await whatsapp_service.send_typing(user['whatsapp_number'])
-            
-            # Descargar imagen desde WhatsApp Cloud API
+            # Obtener datos de la imagen
             media_info = message_data.get('media', {})
+            caption = message_data.get('caption', '')
+            
+            # DEBUG: Ver estructura sin emojis
+            print(f"MEDIA_INFO: {media_info}")
+            print(f"MEDIA_INFO KEYS: {list(media_info.keys()) if isinstance(media_info, dict) else 'NOT_DICT'}")
+            
+            # Obtener el media_id de los datos de imagen
             media_id = media_info.get('id')
+            print(f"MEDIA_ID: {media_id}")
             
             if not media_id:
-                raise ValueError("No se encontró ID de la imagen")
+                raise ValueError(f"No se encontro ID de la imagen. media_info: {media_info}")
+            
+            logger.info(f"IMAGE-DOWNLOAD: Getting media URL for ID: {media_id}")
+            
+            # Obtener URL del archivo desde WhatsApp Cloud API
+            from api.routes.whatsapp_cloud import get_media_url, download_media
+            media_url = await get_media_url(media_id)
+            
+            if not media_url:
+                raise ValueError("No se pudo obtener URL de la imagen")
+                
+            logger.info(f"IMAGE-DOWNLOAD: Downloading from URL: {media_url[:50]}...")
+            
+            # Descargar imagen
+            image_data = await download_media(media_url)
+            
+            if not image_data:
+                raise ValueError("No se pudo descargar la imagen")
+            
+            logger.info(f"IMAGE-DOWNLOAD: Downloaded {len(image_data)} bytes")
+            
+            # Procesar imagen con Gemini
+            result = await gemini_service.process_image(image_data, caption, user)
+            
+            print(f"STEP 6A: IMAGE PROCESSED - Type: {result.get('type')}")
+            print(f"STEP 6B: About to format response")
+            
+            # Enviar confirmación basada en análisis inteligente 
+            try:
+                formatted_response = message_formatter.format_entry_response(result)
+                print(f"STEP 6C: Formatted response length: {len(formatted_response)}")
+            except Exception as format_error:
+                print(f"STEP 6C ERROR: {format_error}")
+                raise
+            
+            # Enviar mensaje al usuario
+            print(f"STEP 7: About to send message to {user['whatsapp_number']}")
+            try:
+                await whatsapp_cloud_service.send_text_message(
+                    to=user['whatsapp_number'],
+                    message=formatted_response
+                )
+                print(f"STEP 7: Message sent successfully")
+            except Exception as send_error:
+                print(f"STEP 7 ERROR: {send_error}")
+                raise
+            
+            # Guardar en base de datos si contiene información válida
+            print(f"STEP 8: About to save to database")
+            entry = None
+            if result.get('type') and result.get('type') != 'consulta':
+                try:
+                    entry_data = {
+                        **result,
+                        "user_id": user['id']
+                    }
+                    entry = await supabase.create_entry(entry_data)
+                    print(f"STEP 8: Entry saved successfully")
+                except Exception as db_error:
+                    print(f"STEP 8 ERROR: {db_error}")
+                    raise
+            
+            print(f"STEP 9: Returning success")
+            return {"status": "success", "result": result, "entry": entry}
             
             logger.info(f"IMAGE-DOWNLOAD: Getting media URL for ID: {media_id}")
             
@@ -524,20 +616,19 @@ class MessageHandler:
             # Contexto adicional del mensaje (caption)
             caption = message_data.get('caption', '')
             
-            # PASO 1: Extraer contexto de la imagen con Gemini Vision
-            logger.info(f"IMAGE-STEP1: Extrayendo contexto de imagen para usuario {user.get('whatsapp_number')}")
-            image_context = await gemini_service.extract_image_context(image_data, user)
-            logger.info(f"IMAGE-CONTEXT: {image_context[:200]}...")
+            # PIPELINE COMPLETO: Procesamiento de imagen con análisis inteligente
+            logger.info(f"IMAGE-PROCESSING: Iniciando pipeline completo con análisis inteligente")
+            logger.info(f"IMAGE-PROCESSING: Caption: '{caption}'")
             
-            # PASO 2: Procesar contexto extraído a través del pipeline enriquecido
-            logger.info(f"IMAGE-STEP2: Procesando contexto extraído con pipeline completo")
-            enhanced_message = f"Información extraída de imagen: {image_context}"
-            if caption:
-                enhanced_message += f"\nContexto adicional del usuario: {caption}"
+            # Usar el pipeline completo que incluye: extracción + análisis inteligente + procesamiento
+            result = await gemini_service.process_image(image_data, caption, user)
+            logger.error(f"🔥 CRITICAL DEBUG - IMAGE RESULT: {result}")
+            logger.error(f"🔥 CRITICAL DEBUG - TIPO: {result.get('type')}")
+            logger.error(f"🔥 CRITICAL DEBUG - MONTO: {result.get('amount')}")
+            logger.error(f"🔥 CRITICAL DEBUG - USER NAME: {user.get('name', 'No name')}")
             
-            # Usar el pipeline completo de procesamiento (con contexto financiero, eventos, etc.)
-            result = await gemini_service.process_message(enhanced_message, user)
-            logger.info(f"IMAGE-RESULT: {result}")
+            # Obtener contexto para el mensaje de respuesta
+            image_context = result.get('description', 'Imagen procesada')
             
             # NUEVA FUNCIONALIDAD: Revisar disponibilidad ANTES de crear evento (igual que texto)
             if result.get('type') == 'evento' and user.get('id'):
@@ -629,7 +720,19 @@ class MessageHandler:
             # Enviar confirmación usando WhatsApp Cloud API
             response = f"📷 **Imagen procesada exitosamente:**\n\n"
             response += f"🔍 **Contexto extraído:** {image_context[:100]}...\n\n"
-            response += whatsapp_service.format_response(result)
+            
+            # Formatear respuesta correctamente
+            
+            # LOGS CRÍTICOS: Interceptar exactamente qué se está formateando
+            logger.error(f"🔥🔥🔥 CRITICAL BEFORE FORMAT - RESULT TYPE: {result.get('type')}")
+            logger.error(f"🔥🔥🔥 CRITICAL BEFORE FORMAT - RESULT COMPLETE: {result}")
+            
+            formatted_result = message_formatter.format_entry_response(result)
+            
+            logger.error(f"🔥🔥🔥 CRITICAL AFTER FORMAT - FORMATTED RESULT: {formatted_result}")
+            logger.error(f"🔥🔥🔥 CRITICAL AFTER FORMAT - TYPE IN FORMATTED: {'💰' if '💰' in formatted_result else '💸' if '💸' in formatted_result else 'UNKNOWN'}")
+            
+            response += formatted_result
             
             # Log response details
             logger.info("=== IMAGE PROCESSING COMPLETE ===")
@@ -647,7 +750,6 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error procesando imagen: {e}")
             
-            from services.formatters import message_formatter
             error_message = f"❌ No pude procesar tu imagen.\n\n💡 {message_formatter.format_error_message('imagen')}"
             await whatsapp_cloud_service.send_text_message(
                 to=user['whatsapp_number'],
@@ -921,6 +1023,8 @@ class MessageHandler:
                 'should_handle_directly': False,
                 'type': 'fallback'
             }
+    
+
 
 # Singleton
 message_handler = MessageHandler()
