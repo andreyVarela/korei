@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     
     # Security
     api_key: Optional[str] = None
-    secret_key: str  # JWT secret key
+    secret_key: Optional[str] = None  # JWT secret key (made optional)
     allowed_origins: str = "*"  # Single string for simplicity
     
     # Optional webhook URL (for documentation/testing)
