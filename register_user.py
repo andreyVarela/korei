@@ -8,9 +8,9 @@ import sys
 def register_user(phone_number):
     """Registrar usuario directamente en Supabase"""
     
-    # Datos de Supabase
-    SUPABASE_URL = "https://loiugrkvdugxzaybijmw.supabase.co"
-    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvaXVncmt2ZHVneHpheWJpam13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTY2MzIxMywiZXhwIjoyMDY3MjM5MjEzfQ.oHYlAOrBtHb5X593v4LAMBvvz3Ya6D7hBYKVqcI-L24"
+    # Datos de Supabase - usar variables de entorno en producción
+    SUPABASE_URL = "https://your-project.supabase.co"  # Reemplazar con tu URL real
+    SUPABASE_KEY = "your_supabase_service_key_here"   # Reemplazar con tu key real
     
     # Headers para Supabase
     headers = {
