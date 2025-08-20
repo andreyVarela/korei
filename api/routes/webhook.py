@@ -197,7 +197,7 @@ async def webhook_test():
     return {
         "status": "webhook_ready",
         "service": "Korei Assistant",
-        "webhook_url": "https://recollecto.andreivarela.com/webhook/c0e371b3-fa4d-4313-a29b-5dc892f5124c/waha",
+        "webhook_url": "https://korei.duckdns.org/webhook/cloud",
         "ready_for": ["message", "status", "presence"]
     }
 
