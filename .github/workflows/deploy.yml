@@ -40,6 +40,7 @@ jobs:
           
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_KEY }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_KEY }}
           
           WHATSAPP_ACCESS_TOKEN=${{ secrets.WHATSAPP_CLOUD_TOKEN }}
           WHATSAPP_PHONE_NUMBER_ID=${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
