@@ -23,7 +23,7 @@ aiofiles==23.2.1
 httpx==0.25.2
 
 # Security & Encryption
-cryptography==41.0.7
+cryptography==42.0.8
 
 # Scheduling & Tasks
 apscheduler==3.10.4
