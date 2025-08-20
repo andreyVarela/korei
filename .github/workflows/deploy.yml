@@ -27,7 +27,7 @@ jobs:
           fi
           
           # Clone new version
-          git clone https://github.com/${{ github.repository }}.git korei-app
+          git clone -b main https://github.com/${{ github.repository }}.git korei-app
           cd korei-app
           
           # Create .env from secrets
