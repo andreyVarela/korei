@@ -235,9 +235,10 @@ async def webhook_test():
     
     return {
         "status": "webhook_ready",
-        "service": "Korei Assistant", 
+        "service": "Korei Assistant UPDATED v2.1", 
         "webhook_url": "https://korei.duckdns.org/webhook/cloud",
         "ready_for": ["message", "status", "presence"],
+        "timestamp": "2025-08-21 06:30:00",
         "debug": debug_info
     }
 
