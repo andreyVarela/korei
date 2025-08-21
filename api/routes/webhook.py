@@ -204,27 +204,31 @@ async def process_meta_message_async(message: dict, value: dict):
 @router.get("/test")
 async def webhook_test():
     """
-    Endpoint de prueba que también simula el registro
+    Endpoint de prueba que también testa WhatsApp
     """
     test_phone = "50699999999"
     debug_info = {"steps": [], "errors": []}
     
     try:
-        debug_info["steps"].append("1. Testing Supabase connection...")
-        from core.supabase import supabase
-        debug_info["steps"].append("✅ Supabase imported")
+        debug_info["steps"].append("1. Testing WhatsApp service...")
+        from services.whatsapp_cloud import whatsapp_cloud_service
+        debug_info["steps"].append("✅ WhatsApp service imported")
         
-        debug_info["steps"].append("2. Checking if user exists...")
-        user = await supabase.get_user_by_phone(test_phone)
-        debug_info["steps"].append(f"✅ User check complete: exists={bool(user)}")
+        debug_info["steps"].append("2. Getting headers and config...")
+        headers = whatsapp_cloud_service._get_headers()
+        base_url = whatsapp_cloud_service._get_base_url()
+        debug_info["steps"].append(f"✅ Headers: {bool(headers.get('Authorization'))}")
+        debug_info["steps"].append(f"✅ Base URL: {base_url}")
         
-        if not user:
-            debug_info["steps"].append("3. Creating basic user...")
-            try:
-                basic_user = await supabase.get_or_create_user(test_phone, "TestUser")
-                debug_info["steps"].append(f"✅ User created: {bool(basic_user)}")
-            except Exception as e:
-                debug_info["errors"].append(f"❌ User creation failed: {str(e)}")
+        debug_info["steps"].append("3. Attempting to send test message...")
+        try:
+            result = await whatsapp_cloud_service.send_text_message(
+                to=test_phone,
+                message="🧪 Test message from endpoint"
+            )
+            debug_info["steps"].append(f"✅ Message sent: {result}")
+        except Exception as wa_error:
+            debug_info["errors"].append(f"❌ WhatsApp error: {str(wa_error)}")
         
     except Exception as e:
         debug_info["errors"].append(f"❌ General error: {str(e)}")
