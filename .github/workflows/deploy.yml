@@ -26,8 +26,9 @@ jobs:
             mv korei-app korei-app-backup-$(date +%Y%m%d-%H%M%S)
           fi
           
-          # Clone new version
-          git clone -b main https://github.com/${{ github.repository }}.git korei-app
+          # Clone new version using GitHub Actions checkout
+          curl -L https://github.com/${{ github.repository }}/archive/main.tar.gz | tar xz
+          mv korei-main korei-app
           cd korei-app
           
           # Create .env from secrets
