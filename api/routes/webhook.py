@@ -223,6 +223,73 @@ async def webhook_test():
         "ready_for": ["message", "status", "presence"]
     }
 
+@router.get("/simulate-register")
+async def simulate_register():
+    """Simula exactamente el flujo de registro para ver dónde falla"""
+    test_phone = "50699999999"
+    errors = []
+    steps = []
+    
+    try:
+        steps.append("1. Importando supabase...")
+        from core.supabase import supabase
+        steps.append("✅ Supabase importado")
+        
+        steps.append("2. Verificando si usuario existe...")
+        user = await supabase.get_user_by_phone(test_phone)
+        steps.append(f"✅ Usuario existente: {bool(user)}")
+        
+        if not user:
+            steps.append("3. Usuario no existe, creando usuario básico...")
+            try:
+                basic_user = await supabase.get_or_create_user(test_phone, "Usuario")
+                steps.append(f"✅ Usuario creado: {basic_user}")
+            except Exception as e:
+                errors.append(f"❌ Error creando usuario: {e}")
+                steps.append(f"❌ Falló creación de usuario: {e}")
+                
+            steps.append("4. Obteniendo contexto...")
+            try:
+                user_context = await supabase.get_user_with_context(test_phone)
+                steps.append(f"✅ Contexto: ID={user_context.get('id')}, phone={user_context.get('whatsapp_number')}")
+            except Exception as e:
+                errors.append(f"❌ Error obteniendo contexto: {e}")
+                steps.append(f"❌ Falló contexto: {e}")
+                user_context = {"id": None, "whatsapp_number": test_phone}
+                
+            if user_context.get('id'):
+                steps.append("5. Ejecutando comando de registro...")
+                try:
+                    from handlers.command_handler import command_handler
+                    result = await command_handler.handle_command("/register", "/register", user_context)
+                    steps.append(f"✅ Comando ejecutado: {result.get('type', 'unknown')}")
+                except Exception as e:
+                    errors.append(f"❌ Error en comando: {e}")
+                    steps.append(f"❌ Falló comando: {e}")
+            else:
+                errors.append("❌ Usuario sin ID válido")
+                steps.append("❌ No se puede ejecutar comando sin ID de usuario")
+        else:
+            steps.append("3. Usuario ya existe, saltando creación...")
+            
+        return {
+            "status": "simulation_complete",
+            "test_phone": test_phone,
+            "steps": steps,
+            "errors": errors,
+            "error_count": len(errors)
+        }
+        
+    except Exception as e:
+        import traceback
+        return {
+            "status": "simulation_failed",
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "steps": steps,
+            "errors": errors
+        }
+
 @router.get("/debug-registrar")
 async def debug_registrar():
     """
