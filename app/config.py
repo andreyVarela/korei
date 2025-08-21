@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     whatsapp_business_account_id: str
     whatsapp_webhook_secret: Optional[str] = None
     
+    @property
+    def whatsapp_cloud_token(self) -> str:
+        """Alias for whatsapp_access_token for backward compatibility"""
+        return self.whatsapp_access_token
+    
     # AI Services
     gemini_api_key: str
     openai_api_key: Optional[str] = None
