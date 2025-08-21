@@ -657,8 +657,15 @@ class SupabaseService:
             }
             
         except Exception as e:
-            logger.error(f"Error obteniendo contexto completo: {e}")
-            return {}
+            logger.error(f"Error obteniendo contexto completo para {phone}: {e}")
+            # Retornar estructura mínima para evitar KeyError
+            return {
+                "id": None,
+                "phone": phone,
+                "whatsapp_number": phone,
+                "name": "Usuario",
+                "profile": {}
+            }
 
 # Instancia singleton
 supabase = SupabaseService()
