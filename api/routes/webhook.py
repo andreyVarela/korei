@@ -214,13 +214,37 @@ async def process_meta_message_async(message: dict, value: dict):
 @router.get("/test")
 async def webhook_test():
     """
-    Endpoint de prueba para verificar que el webhook está accesible
+    Endpoint de prueba que también simula el registro
     """
+    test_phone = "50699999999"
+    debug_info = {"steps": [], "errors": []}
+    
+    try:
+        debug_info["steps"].append("1. Testing Supabase connection...")
+        from core.supabase import supabase
+        debug_info["steps"].append("✅ Supabase imported")
+        
+        debug_info["steps"].append("2. Checking if user exists...")
+        user = await supabase.get_user_by_phone(test_phone)
+        debug_info["steps"].append(f"✅ User check complete: exists={bool(user)}")
+        
+        if not user:
+            debug_info["steps"].append("3. Creating basic user...")
+            try:
+                basic_user = await supabase.get_or_create_user(test_phone, "TestUser")
+                debug_info["steps"].append(f"✅ User created: {bool(basic_user)}")
+            except Exception as e:
+                debug_info["errors"].append(f"❌ User creation failed: {str(e)}")
+        
+    except Exception as e:
+        debug_info["errors"].append(f"❌ General error: {str(e)}")
+    
     return {
         "status": "webhook_ready",
-        "service": "Korei Assistant",
+        "service": "Korei Assistant", 
         "webhook_url": "https://korei.duckdns.org/webhook/cloud",
-        "ready_for": ["message", "status", "presence"]
+        "ready_for": ["message", "status", "presence"],
+        "debug": debug_info
     }
 
 @router.get("/simulate-register")
