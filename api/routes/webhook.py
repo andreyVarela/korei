@@ -213,48 +213,63 @@ async def webhook_test():
         "ready_for": ["message", "status", "presence"]
     }
 
-@router.post("/debug-registrar")
+@router.get("/debug-registrar")
 async def debug_registrar():
     """
     Endpoint para debug del proceso de registro
     """
     try:
         test_phone = "50688888888"
-        logger.info(f"🧪 DEBUG: Iniciando test de registro para {test_phone}")
+        debug_steps = []
         
         from core.supabase import supabase
         
         # Paso 1: Verificar si usuario existe
-        logger.info(f"🧪 PASO 1: Verificando si usuario existe...")
-        user = await supabase.get_user_by_phone(test_phone)
-        logger.info(f"🧪 Usuario existente: {user}")
+        debug_steps.append("🧪 PASO 1: Verificando si usuario existe...")
+        try:
+            user = await supabase.get_user_by_phone(test_phone)
+            debug_steps.append(f"✅ Usuario existente: {user}")
+        except Exception as e1:
+            debug_steps.append(f"❌ Error verificando usuario: {e1}")
+            user = None
         
         # Paso 2: Intentar obtener contexto
-        logger.info(f"🧪 PASO 2: Obteniendo contexto...")
-        user_context = await supabase.get_user_with_context(test_phone)
-        logger.info(f"🧪 Contexto obtenido: {user_context}")
+        debug_steps.append("🧪 PASO 2: Obteniendo contexto...")
+        try:
+            user_context = await supabase.get_user_with_context(test_phone)
+            debug_steps.append(f"✅ Contexto obtenido: {user_context}")
+        except Exception as e2:
+            debug_steps.append(f"❌ Error obteniendo contexto: {e2}")
+            user_context = {"whatsapp_number": test_phone, "id": None, "name": "Usuario"}
         
         # Paso 3: Intentar comando de registro
-        logger.info(f"🧪 PASO 3: Ejecutando comando de registro...")
-        from handlers.command_handler import command_handler
-        result = await command_handler.handle_command("/registrar", "/registrar", user_context)
-        logger.info(f"🧪 Resultado del comando: {result}")
+        debug_steps.append("🧪 PASO 3: Ejecutando comando de registro...")
+        try:
+            from handlers.command_handler import command_handler
+            result = await command_handler.handle_command("/registrar", "/registrar", user_context)
+            debug_steps.append(f"✅ Resultado del comando: {result}")
+        except Exception as e3:
+            debug_steps.append(f"❌ Error ejecutando comando: {e3}")
+            import traceback
+            debug_steps.append(f"❌ Traceback: {traceback.format_exc()}")
+            result = None
         
         return {
             "status": "debug_complete",
+            "test_phone": test_phone,
             "user_exists": bool(user),
-            "user_context": user_context,
+            "debug_steps": debug_steps,
+            "final_user_context": user_context,
             "command_result": result
         }
         
     except Exception as e:
-        logger.error(f"🧪 ERROR en debug: {e}")
         import traceback
-        logger.error(f"🧪 Traceback: {traceback.format_exc()}")
         return {
             "status": "error",
             "error": str(e),
-            "type": type(e).__name__
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc()
         }
 
 @router.post("/test-image-internal")
