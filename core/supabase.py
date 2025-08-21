@@ -17,25 +17,32 @@ class SupabaseService:
         """Lazy initialization del cliente Supabase"""
         if self.client is None:
             try:
+                # Simple initialization with just URL and key
                 self.client = create_client(
                     settings.supabase_url,
                     settings.supabase_service_key
                 )
-                logger.info("Cliente Supabase inicializado")
+                logger.info("Cliente Supabase inicializado correctamente")
             except Exception as e:
-                logger.warning(f"No se pudo conectar a Supabase: {e}")
-                raise
+                logger.error(f"Error al inicializar Supabase: {e}")
+                self.client = None
+                return None
         return self.client
         
     # Usuario methods
     async def get_user_by_phone(self, phone: str) -> Optional[Dict[str, Any]]:
         """Busca usuario por teléfono - compatible con ambos formatos"""
         try:
+            client = self._get_client()
+            if client is None:
+                logger.error("Cliente Supabase no disponible")
+                return None
+            
             # Limpiar número
             clean_phone = ''.join(filter(str.isdigit, phone))
             
             # Intentar buscar con número limpio primero (nuevo formato)
-            result = self._get_client().table("users").select("*").eq(
+            result = client.table("users").select("*").eq(
                 "whatsapp_number", clean_phone
             ).execute()
             
