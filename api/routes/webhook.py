@@ -137,17 +137,27 @@ async def process_meta_message_async(message: dict, value: dict):
         if not user:
             logger.info(f"🔍 Usuario no encontrado para {phone}")
             # Verificar si el mensaje es para registrarse (ejemplo: comando /registrar)
-            if message_type == "text" and body and body.strip().lower().startswith("/registrar"):
+            # Verificar comandos de registro
+            registration_commands = ["/registrar", "/register", "/registro"]
+            is_registration = message_type == "text" and body and any(body.strip().lower().startswith(cmd) for cmd in registration_commands)
+            if is_registration:
                 logger.info(f"✅ Detectado comando de registro: {body}")
                 try:
-                    # Procesar registro normalmente
-                    logger.info(f"🔄 Obteniendo contexto de usuario para {phone}")
+                    # REGISTRAR: Primero crear usuario básico en BD
+                    logger.info(f"🔄 Creando usuario básico para {phone}")
+                    basic_user = await supabase.get_or_create_user(phone, "Usuario")
+                    logger.info(f"👤 Usuario básico: {basic_user}")
+                    
+                    # Luego obtener contexto completo
+                    logger.info(f"🔄 Obteniendo contexto completo para {phone}")
                     user_context = await supabase.get_user_with_context(phone)
                     logger.info(f"📋 Contexto obtenido: {user_context}")
                     
                     from handlers.command_handler import command_handler
-                    logger.info(f"🤖 Ejecutando comando de registro...")
-                    result = await command_handler.handle_command("/registrar", body, user_context)
+                    logger.info(f"🤖 Ejecutando comando: {body}")
+                    # Usar /register que es lo que acepta el command handler
+                    normalized_command = "/register"
+                    result = await command_handler.handle_command(normalized_command, body, user_context)
                     logger.info(f"✅ Registro procesado Meta: {result}")
                 except Exception as reg_error:
                     logger.error(f"❌ Error durante registro para {phone}: {reg_error}")
