@@ -135,13 +135,25 @@ async def process_meta_message_async(message: dict, value: dict):
         body = message.get("text", {}).get("body", "") if message_type == "text" else None
         # Si no existe el usuario
         if not user:
+            logger.info(f"🔍 Usuario no encontrado para {phone}")
             # Verificar si el mensaje es para registrarse (ejemplo: comando /registrar)
             if message_type == "text" and body and body.strip().lower().startswith("/registrar"):
-                # Procesar registro normalmente
-                user_context = await supabase.get_user_with_context(phone)
-                from handlers.command_handler import command_handler
-                result = await command_handler.handle_command("/registrar", body, user_context)
-                logger.info(f"🤖 Registro procesado Meta: {result}")
+                logger.info(f"✅ Detectado comando de registro: {body}")
+                try:
+                    # Procesar registro normalmente
+                    logger.info(f"🔄 Obteniendo contexto de usuario para {phone}")
+                    user_context = await supabase.get_user_with_context(phone)
+                    logger.info(f"📋 Contexto obtenido: {user_context}")
+                    
+                    from handlers.command_handler import command_handler
+                    logger.info(f"🤖 Ejecutando comando de registro...")
+                    result = await command_handler.handle_command("/registrar", body, user_context)
+                    logger.info(f"✅ Registro procesado Meta: {result}")
+                except Exception as reg_error:
+                    logger.error(f"❌ Error durante registro para {phone}: {reg_error}")
+                    logger.error(f"❌ Tipo de error: {type(reg_error).__name__}")
+                    import traceback
+                    logger.error(f"❌ Traceback: {traceback.format_exc()}")
             else:
                 logger.info(f"⏭️ Usuario no existe y no es registro. Ignorando mensaje Meta de {phone}")
                 return  # No responde ni procesa
@@ -200,6 +212,50 @@ async def webhook_test():
         "webhook_url": "https://korei.duckdns.org/webhook/cloud",
         "ready_for": ["message", "status", "presence"]
     }
+
+@router.post("/debug-registrar")
+async def debug_registrar():
+    """
+    Endpoint para debug del proceso de registro
+    """
+    try:
+        test_phone = "50688888888"
+        logger.info(f"🧪 DEBUG: Iniciando test de registro para {test_phone}")
+        
+        from core.supabase import supabase
+        
+        # Paso 1: Verificar si usuario existe
+        logger.info(f"🧪 PASO 1: Verificando si usuario existe...")
+        user = await supabase.get_user_by_phone(test_phone)
+        logger.info(f"🧪 Usuario existente: {user}")
+        
+        # Paso 2: Intentar obtener contexto
+        logger.info(f"🧪 PASO 2: Obteniendo contexto...")
+        user_context = await supabase.get_user_with_context(test_phone)
+        logger.info(f"🧪 Contexto obtenido: {user_context}")
+        
+        # Paso 3: Intentar comando de registro
+        logger.info(f"🧪 PASO 3: Ejecutando comando de registro...")
+        from handlers.command_handler import command_handler
+        result = await command_handler.handle_command("/registrar", "/registrar", user_context)
+        logger.info(f"🧪 Resultado del comando: {result}")
+        
+        return {
+            "status": "debug_complete",
+            "user_exists": bool(user),
+            "user_context": user_context,
+            "command_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"🧪 ERROR en debug: {e}")
+        import traceback
+        logger.error(f"🧪 Traceback: {traceback.format_exc()}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "type": type(e).__name__
+        }
 
 @router.post("/test-image-internal")
 async def test_image_internal():
