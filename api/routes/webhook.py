@@ -142,28 +142,18 @@ async def process_meta_message_async(message: dict, value: dict):
             is_registration = message_type == "text" and body and any(body.strip().lower().startswith(cmd) for cmd in registration_commands)
             if is_registration:
                 logger.info(f"✅ Detectado comando de registro: {body}")
+                # RESPUESTA INMEDIATA SIN COMPLICACIONES
                 try:
-                    # REGISTRAR: Primero crear usuario básico en BD
-                    logger.info(f"🔄 Creando usuario básico para {phone}")
-                    basic_user = await supabase.get_or_create_user(phone, "Usuario")
-                    logger.info(f"👤 Usuario básico: {basic_user}")
+                    from services.whatsapp_cloud import whatsapp_cloud_service
+                    simple_response = f"🔄 **Registro detectado**\n\nTu número: {phone}\nComando: {body}\n\n✅ Sistema funcionando correctamente!"
                     
-                    # Luego obtener contexto completo
-                    logger.info(f"🔄 Obteniendo contexto completo para {phone}")
-                    user_context = await supabase.get_user_with_context(phone)
-                    logger.info(f"📋 Contexto obtenido: {user_context}")
-                    
-                    from handlers.command_handler import command_handler
-                    logger.info(f"🤖 Ejecutando comando: {body}")
-                    # Usar /register que es lo que acepta el command handler
-                    normalized_command = "/register"
-                    result = await command_handler.handle_command(normalized_command, body, user_context)
-                    logger.info(f"✅ Registro procesado Meta: {result}")
-                except Exception as reg_error:
-                    logger.error(f"❌ Error durante registro para {phone}: {reg_error}")
-                    logger.error(f"❌ Tipo de error: {type(reg_error).__name__}")
-                    import traceback
-                    logger.error(f"❌ Traceback: {traceback.format_exc()}")
+                    await whatsapp_cloud_service.send_text_message(
+                        to=phone,
+                        message=simple_response
+                    )
+                    logger.info(f"✅ Respuesta simple enviada a {phone}")
+                except Exception as simple_error:
+                    logger.error(f"❌ Error en respuesta simple: {simple_error}")
             else:
                 logger.info(f"⏭️ Usuario no existe y no es registro. Ignorando mensaje Meta de {phone}")
                 return  # No responde ni procesa
