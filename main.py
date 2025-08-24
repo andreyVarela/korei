@@ -8,7 +8,7 @@ from loguru import logger
 import sys
 
 from app.config import settings
-from api.routes import webhook, stats, health, integrations, whatsapp_cloud, payment_webhook, debug
+from api.routes import webhook, stats, health, integrations, whatsapp_cloud, payment_webhook, debug, debug_webhook
 from api.middleware import LoggingMiddleware, ErrorHandlerMiddleware
 from services.reminder_scheduler import reminder_scheduler
 
@@ -73,6 +73,7 @@ app.include_router(payment_webhook.router, prefix="/webhook/payment", tags=["Pay
 app.include_router(stats.router, prefix="/api/stats", tags=["Statistics"])
 app.include_router(integrations.router, prefix="/api", tags=["Integrations"])
 app.include_router(debug.router, prefix="/debug", tags=["Debug"])
+app.include_router(debug_webhook.router, prefix="/debug", tags=["Debug Webhook"])
 
 if __name__ == "__main__":
     import uvicorn
