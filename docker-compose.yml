@@ -34,20 +34,7 @@ services:
           memory: 512M
           cpus: '0.5'
 
-  # Optional: WAHA service (uncomment if using local WhatsApp)
-  # waha:
-  #   image: devlikeapro/waha:latest
-  #   container_name: korei-waha
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - WAHA_SESSION_NAME=default
-  #     - WAHA_API_KEY=${WAHA_API_KEY}
-  #   volumes:
-  #     - waha-sessions:/app/sessions
-  #   networks:
-  #     - korei-network
+  # WAHA removido - Solo se usa Meta WhatsApp Business API
 
   # Optional: Nginx reverse proxy
   nginx:
@@ -68,7 +55,7 @@ services:
 volumes:
   app-logs:
   app-temp:
-  # waha-sessions:
+  # waha-sessions: REMOVIDO
 
 networks:
   korei-network:

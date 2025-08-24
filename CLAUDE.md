@@ -43,14 +43,14 @@ Korei Assistant is a WhatsApp-based AI assistant that processes messages, audio,
 
 ### Core Architecture
 - **FastAPI Application**: Main HTTP server handling webhooks and API endpoints
-- **WAHA Integration**: WhatsApp HTTP API for message handling
+- **Meta WhatsApp Business API**: Direct integration with WhatsApp Cloud API
 - **Supabase Backend**: Database and storage for user data and entries
 - **Gemini AI Service**: Multi-modal AI processing (text, audio, images)
 
 ### Key Components
 
 #### Message Flow
-1. WhatsApp → WAHA → Webhook endpoint (`api/routes/webhook.py`)
+1. WhatsApp → Meta Business API → Webhook endpoint (`api/routes/whatsapp_cloud.py`)
 2. Background task processing via `MessageHandler` (`handlers/message_handler.py`)
 3. AI processing through `GeminiService` (`services/gemini.py`)
 4. Database storage via Supabase client (`core/supabase.py`)
@@ -70,7 +70,7 @@ Korei Assistant is a WhatsApp-based AI assistant that processes messages, audio,
 
 ### Configuration
 - Environment-based configuration using Pydantic Settings (`app/config.py`)
-- Required environment variables: Supabase credentials, WAHA API details, Gemini API key
+- Required environment variables: Supabase credentials, WhatsApp Cloud API tokens, Gemini API key
 - Timezone-aware processing (defaults to America/Costa_Rica)
 
 ### Media Processing

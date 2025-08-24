@@ -8,7 +8,7 @@ from loguru import logger
 import sys
 
 from app.config import settings
-from api.routes import webhook, stats, health, integrations, whatsapp_cloud, payment_webhook, debug, debug_webhook, debug_simple
+from api.routes import stats, health, integrations, whatsapp_cloud, payment_webhook, debug, debug_webhook, debug_simple
 from api.middleware import LoggingMiddleware, ErrorHandlerMiddleware
 from services.reminder_scheduler import reminder_scheduler
 
@@ -67,8 +67,9 @@ if settings.debug:
 
 # Rutas
 app.include_router(health.router, tags=["Health"])
-app.include_router(webhook.router, prefix="/webhook", tags=["WhatsApp WAHA"])
-app.include_router(whatsapp_cloud.router, prefix="/webhook/cloud", tags=["WhatsApp Cloud API"])
+# WAHA removido - Solo Meta Business API
+# app.include_router(webhook.router, prefix="/webhook", tags=["WhatsApp WAHA"])
+app.include_router(whatsapp_cloud.router, prefix="/webhook/cloud", tags=["WhatsApp Unified API"])
 app.include_router(payment_webhook.router, prefix="/webhook/payment", tags=["Payment Webhooks"])
 app.include_router(stats.router, prefix="/api/stats", tags=["Statistics"])
 app.include_router(integrations.router, prefix="/api", tags=["Integrations"])

@@ -1,6 +1,7 @@
 """
-Webhook para WhatsApp Cloud API oficial de Meta
-Incluye endpoints de prueba para envío de mensajes
+Webhook unificado para WhatsApp Cloud API oficial de Meta
+Incluye todos los endpoints consolidados: webhook, testing, logs y debugging
+VERSIÓN: 3.0.0 - Arquitectura Consolidada
 """
 from fastapi import APIRouter, HTTPException, Request, Query, Header
 from fastapi.responses import PlainTextResponse
@@ -193,6 +194,26 @@ async def process_text_message(phone_number: str, message_text: str, contact_nam
     try:
         logger.info(f"TEXT MODULE: Starting processing for {phone_number}")
         logger.info(f"TEXT MODULE: Message: {message_text}")
+        
+        # 🚨 COMANDO ESPECIAL /log - PROCESAR ANTES DE SUPABASE
+        if message_text and message_text.strip().startswith('/log'):
+            logger.info(f"🔍 COMANDO /log DETECTADO EN WHATSAPP_CLOUD - Procesando directamente para {phone_number}")
+            try:
+                from handlers.message_handler import message_handler
+                # Crear contexto mínimo sin Supabase para comando /log
+                user_context = {
+                    "whatsapp_number": phone_number,
+                    "phone": phone_number,
+                    "id": None,  # No necesita ID para /log
+                    "name": "Usuario Debug"
+                }
+                result = await message_handler.handle_log_command(user_context, message_text.strip())
+                logger.info(f"✅ Comando /log procesado exitosamente en whatsapp_cloud: {result.get('status')}")
+                return {"status": "success", "log_processed": True}
+            except Exception as log_error:
+                logger.error(f"❌ Error procesando comando /log en whatsapp_cloud: {log_error}")
+                await send_message_simple(phone_number, f"❌ Error en comando /log: {str(log_error)}")
+                return {"status": "error", "message": f"Error en /log: {str(log_error)}"}
         
         # Obtener o crear usuario en Supabase con contexto completo (incluye perfil)
         user = await supabase.get_user_with_context(phone_number)
@@ -1132,3 +1153,129 @@ async def test_message_processing():
             "status": "error",
             "message": str(e)
         }
+
+# ===== ENDPOINTS CONSOLIDADOS =====
+# Funcionalidad consolidada de webhook.py, server_logs.py y otros
+
+@router.get("/logs/recent")
+async def get_recent_logs():
+    """Obtener logs recientes de la aplicación - Consolidado de server_logs.py"""
+    try:
+        import os
+        import glob
+        
+        log_info = {
+            "log_files": [],
+            "recent_logs": [],
+            "environment": os.environ.get("ENVIRONMENT", "unknown")
+        }
+        
+        # Buscar archivos de log
+        log_patterns = [
+            "/app/logs/*.log",
+            "/app/logs/*.txt", 
+            "./logs/*.log",
+            "./logs/*.txt"
+        ]
+        
+        for pattern in log_patterns:
+            files = glob.glob(pattern)
+            log_info["log_files"].extend(files)
+        
+        # Leer logs recientes si existen
+        if log_info["log_files"]:
+            try:
+                with open(log_info["log_files"][0], 'r') as f:
+                    lines = f.readlines()
+                    log_info["recent_logs"] = lines[-50:]  # Últimas 50 líneas
+            except Exception as e:
+                log_info["log_read_error"] = str(e)
+        
+        return log_info
+        
+    except Exception as e:
+        return {
+            "error": str(e),
+            "message": "Error getting logs"
+        }
+
+@router.get("/logs/test-flow") 
+async def test_message_flow():
+    """Probar el flujo de procesamiento de mensajes - Consolidado de server_logs.py"""
+    try:
+        from core.supabase import supabase
+        from handlers.message_handler import message_handler
+        
+        test_phone = "50660052300"
+        test_message = "test flow"
+        
+        # PASO 1: Obtener usuario
+        user = await supabase.get_user_with_context(test_phone)
+        
+        step_info = {
+            "step_1_user_retrieval": {
+                "success": user is not None,
+                "user_data": user,
+                "has_whatsapp_number": user.get('whatsapp_number') is not None if user else False,
+                "user_keys": list(user.keys()) if user else None
+            }
+        }
+        
+        if user:
+            # PASO 2: Procesar con message handler
+            try:
+                result = await message_handler.handle_text(test_message, user)
+                step_info["step_2_message_handler"] = {
+                    "success": True,
+                    "result": result
+                }
+            except Exception as e:
+                step_info["step_2_message_handler"] = {
+                    "success": False,
+                    "error": str(e),
+                    "error_type": type(e).__name__
+                }
+        
+        return step_info
+        
+    except Exception as e:
+        import traceback
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+@router.get("/webhook-status")
+async def webhook_status():
+    """Estado completo del sistema de webhooks - Consolidado"""
+    return {
+        "status": "healthy", 
+        "webhook_type": "Meta WhatsApp Business API",
+        "version": "3.0.0-consolidated",
+        "active_endpoints": {
+            "webhook": "POST /webhook/cloud",
+            "verification": "GET /webhook/cloud", 
+            "testing": [
+                "GET /webhook/cloud/test-connection",
+                "POST /webhook/cloud/send-test-message",
+                "POST /webhook/cloud/test-message"
+            ],
+            "logs": [
+                "GET /webhook/cloud/logs/recent",
+                "GET /webhook/cloud/logs/test-flow"
+            ],
+            "status": "GET /webhook/cloud/webhook-status"
+        },
+        "features": {
+            "auto_log_bypass": True,
+            "meta_business_api": True,
+            "background_processing": True,
+            "idempotency_check": True,
+            "consolidated_debugging": True
+        },
+        "removed_systems": [
+            "WAHA (completely removed)",
+            "Duplicate webhook endpoints",
+            "Scattered debug endpoints"
+        ]
+    }

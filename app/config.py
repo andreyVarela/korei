@@ -20,10 +20,7 @@ class Settings(BaseSettings):
     supabase_service_key: str  # Service role key
     supabase_anon_key: Optional[str] = None  # Optional anon key
     
-    # WhatsApp (WAHA) - Legacy
-    waha_api_url: Optional[str] = None
-    waha_api_key: Optional[str] = None
-    waha_session: str = "default"
+    # WAHA removido - Solo se usa Meta Business API
     
     # WhatsApp Cloud API
     whatsapp_access_token: str  # Access token
