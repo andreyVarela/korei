@@ -41,6 +41,14 @@ class MessageHandler:
                     'message': "❌ **Usuario no encontrado**\n\n🔒 Para usar Korei Assistant necesitas estar registrado.\n\n💬 Envía `/register` para crear tu cuenta."
                 }
             
+            # Verificar que tenga número de WhatsApp (campo requerido)
+            if not user.get('whatsapp_number'):
+                logger.error(f"Usuario sin whatsapp_number: {user}")
+                return {
+                    'is_valid': False,
+                    'message': "❌ **Error de configuración de usuario**\n\n🔒 Usuario sin número de WhatsApp configurado."
+                }
+            
             # Con el nuevo sistema, todos los usuarios registrados tienen acceso básico
             # La verificación de límites se hace por función específica
             
@@ -78,6 +86,15 @@ class MessageHandler:
     async def handle_text(self, message: str, user: Dict[str, Any]) -> Dict[str, Any]:
         """Procesa mensajes de texto"""
         try:
+            # Verificación de usuario al inicio
+            if not user:
+                logger.error("Usuario None en handle_text")
+                return {"status": "error", "message": "Error de usuario"}
+                
+            if not user.get('whatsapp_number'):
+                logger.error(f"Usuario sin whatsapp_number en handle_text: {user}")
+                return {"status": "error", "message": "Error de configuración de usuario"}
+            
             # 🔒 SEGURIDAD ULTRA ESTRICTA: SOLO /register para no registrados
             message_clean = message.strip()
             is_register_command = message_clean.startswith('/register') or message_clean.startswith('/registro')
@@ -271,6 +288,14 @@ class MessageHandler:
             command = parts[0].lower()
             
             print(f"DEBUG COMMAND: {command} from user {user.get('whatsapp_number', 'unknown')}")
+            
+            # Verificar que el usuario tiene la estructura correcta
+            if not user or not user.get('whatsapp_number'):
+                logger.error(f"Usuario inválido en comando: {user}")
+                return {
+                    "status": "error",
+                    "message": "Error de usuario - estructura inválida"
+                }
             
             # Procesar comando
             result = await command_handler.handle_command(command, message, user)
