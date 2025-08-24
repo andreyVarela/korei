@@ -65,7 +65,8 @@ jobs:
           mv korei-main korei-app
           cd korei-app
           
-          # Create .env from secrets
+          # Create .env from secrets (with debug info)
+          echo "🔍 DEBUG: Creating .env file with secrets..."
           cat > .env << EOF
           APP_NAME=Korei Assistant
           APP_VERSION=2.0.0
@@ -92,6 +93,16 @@ jobs:
           # Docker image info
           KOREI_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
           EOF
+          
+          # Debug: Verify .env file was created correctly (without exposing secrets)
+          echo "🔍 DEBUG: .env file variables (sanitized):"
+          grep -E "^[A-Z_]+=.*" .env | sed 's/=.*/=***/' || echo "No variables found in .env"
+          
+          # Verify critical variables exist (without showing values)
+          echo "🔍 DEBUG: Checking critical variables..."
+          grep -q "WHATSAPP_ACCESS_TOKEN=" .env && echo "✅ WHATSAPP_ACCESS_TOKEN found" || echo "❌ WHATSAPP_ACCESS_TOKEN missing"
+          grep -q "SUPABASE_SERVICE_KEY=" .env && echo "✅ SUPABASE_SERVICE_KEY found" || echo "❌ SUPABASE_SERVICE_KEY missing"
+          grep -q "GEMINI_API_KEY=" .env && echo "✅ GEMINI_API_KEY found" || echo "❌ GEMINI_API_KEY missing"
           
           # Login to registry and pull latest image
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
