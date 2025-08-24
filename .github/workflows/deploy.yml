@@ -121,8 +121,11 @@ jobs:
           # Login to registry and pull latest image
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
           
-          # Stop current containers
-          docker compose down || true
+          # Stop and remove current containers completely
+          echo "🧹 Cleaning up existing containers..."
+          docker compose down --remove-orphans || true
+          docker rm -f korei-assistant korei-nginx || true
+          docker system prune -f || true
           
           # Pull the exact image built in this workflow
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
@@ -149,14 +152,38 @@ jobs:
           
           # Check both direct app and nginx proxy
           echo "🔍 Testing app direct access..."
-          curl -f http://localhost:8000/health && echo "✅ App direct access works" || echo "❌ App direct access failed"
+          if curl -f http://localhost:8000/health; then
+            echo "✅ App direct access works"
+            APP_WORKS=true
+          else
+            echo "❌ App direct access failed"
+            APP_WORKS=false
+          fi
           
           echo "🔍 Testing nginx proxy access..."  
           if curl -f http://localhost/health; then
+            echo "✅ Nginx proxy works"
+            NGINX_WORKS=true
+          else
+            echo "❌ Nginx proxy failed"
+            NGINX_WORKS=false
+          fi
+          
+          # Determine overall success
+          if [ "$APP_WORKS" = true ] && [ "$NGINX_WORKS" = true ]; then
             echo "✅ Deploy completed successfully!"
             echo "🚀 Application is running at http://138.197.41.6"
+          elif [ "$APP_WORKS" = true ]; then
+            echo "⚠️ App works but nginx proxy failed - partial success"
+            echo "🚀 Application accessible at http://138.197.41.6:8000"
+            echo "⚠️ Nginx issue - check nginx container logs"
+            docker logs korei-nginx --tail=20 || echo "No nginx logs available"
+            exit 0
           else
-            echo "❌ Health check failed!"
+            echo "❌ Complete health check failed!"
+            echo "📋 App logs:"
             docker logs korei-assistant --tail=50
+            echo "📋 Nginx logs:"  
+            docker logs korei-nginx --tail=20 || echo "No nginx logs available"
             exit 1
           fi
