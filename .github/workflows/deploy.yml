@@ -26,33 +26,39 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=sha,prefix=main-
-          type=raw,value=latest,enable={{is_default_branch}}
-    
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        no-cache: true
-        target: production
+    - name: Build Docker image manually
+      run: |
+        echo "🔨 Building Docker image with manual commands for better error visibility..."
+        echo "Registry: ${{ env.REGISTRY }}"
+        echo "Image name: ${{ env.IMAGE_NAME }}"
+        echo "Commit SHA: ${{ github.sha }}"
+        
+        # Build the image
+        docker build \
+          --no-cache \
+          --target production \
+          --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }} \
+          --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+          .
+        
+        echo "✅ Docker build completed successfully"
+        
+    - name: Push Docker image to registry
+      run: |
+        echo "📤 Pushing Docker image to GitHub Container Registry..."
+        
+        # Push both tags
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        
+        echo "✅ Docker push completed successfully"
         
     - name: Verify image was pushed successfully
       run: |
         echo "🔍 Verifying image exists in registry..."
-        echo "Expected tags: ${{ steps.meta.outputs.tags }}"
         echo "Attempting to pull main-SHA tag..."
         docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
-        echo "✅ Image pull successful - build and push worked correctly"
+        echo "✅ Image verification successful - ready for deployment"
     
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.7
