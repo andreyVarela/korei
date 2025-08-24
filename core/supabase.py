@@ -643,7 +643,7 @@ class SupabaseService:
             profile = await self.get_user_profile(user["id"])
             
             # Combinar información
-            return {
+            user_context = {
                 "id": user["id"],
                 "phone": phone,
                 "whatsapp_number": phone,  # Para compatibilidad con message_handler
@@ -656,16 +656,32 @@ class SupabaseService:
                 }
             }
             
+            # Log para debugging
+            logger.info(f"Successfully created user context for {phone}: ID={user_context['id']}, has_whatsapp_number={bool(user_context.get('whatsapp_number'))}")
+            
+            return user_context
+            
         except Exception as e:
             logger.error(f"Error obteniendo contexto completo para {phone}: {e}")
+            logger.error(f"Exception details: {type(e).__name__}: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
             # Retornar estructura mínima para evitar KeyError
-            return {
+            fallback_user = {
                 "id": None,
                 "phone": phone,
-                "whatsapp_number": phone,
+                "whatsapp_number": phone,  # Campo crítico
                 "name": "Usuario",
-                "profile": {}
+                "profile": {
+                    "occupation": None,
+                    "hobbies": [],
+                    "context_summary": None,
+                    "preferences": {}
+                }
             }
+            logger.info(f"Returning fallback user structure: {fallback_user}")
+            return fallback_user
 
 # Instancia singleton
 supabase = SupabaseService()
