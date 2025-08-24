@@ -3,7 +3,7 @@ version: '3.8'
 services:
   korei-api:
     # Use pre-built image from GitHub Container Registry
-    image: ${KOREI_IMAGE:-ghcr.io/avsol/korei:latest}
+    image: ${KOREI_IMAGE:-ghcr.io/andreyvarela/korei:latest}
     container_name: korei-assistant
     restart: unless-stopped
     ports:

@@ -105,8 +105,14 @@ jobs:
           # Update docker-compose to use the specific image
           export KOREI_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}"
           
+          # Verify image exists before deploying
+          docker images | grep andreyvarela/korei || echo "Warning: Expected image not found"
+          
           # Deploy with the new image
           docker compose up -d --force-recreate
+          
+          # Verify correct image is running
+          docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | grep korei
           
           # Cleanup old images (keep last 3)
           docker image prune -f
