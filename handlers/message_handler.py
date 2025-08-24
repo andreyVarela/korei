@@ -103,6 +103,11 @@ class MessageHandler:
             # 🔒 SEGURIDAD ULTRA ESTRICTA: SOLO /register para no registrados
             message_clean = message.strip()
             is_register_command = message_clean.startswith('/register') or message_clean.startswith('/registro')
+            is_log_command = message_clean.startswith('/log')
+            
+            # COMANDO ESPECIAL /log - NO REQUIERE REGISTRO
+            if is_log_command:
+                return await self.handle_log_command(user, message_clean)
             
             # Verificar si el usuario está registrado
             user_verification = await self.verify_user_and_payment(user)
@@ -1055,6 +1060,95 @@ class MessageHandler:
             }
     
 
+
+    async def handle_log_command(self, user: Dict[str, Any], message: str) -> Dict[str, Any]:
+        """Comando especial /log para debugging - NO requiere registro"""
+        try:
+            from core.supabase import supabase
+            from services.whatsapp_cloud import whatsapp_cloud_service
+            
+            # Extraer el teléfono del usuario
+            phone_number = user.get('whatsapp_number') or user.get('phone')
+            
+            logger.info(f"🔍 LOG COMMAND - User received: {user}")
+            logger.info(f"🔍 LOG COMMAND - Phone extracted: {phone_number}")
+            
+            # Información de debugging
+            debug_info = {
+                "user_received": user,
+                "user_keys": list(user.keys()) if user else None,
+                "has_whatsapp_number": user.get('whatsapp_number') is not None if user else False,
+                "has_phone": user.get('phone') is not None if user else False,
+                "has_id": user.get('id') is not None if user else False,
+                "phone_extracted": phone_number
+            }
+            
+            # Intentar buscar en la base de datos directamente
+            try:
+                if phone_number:
+                    clean_phone = ''.join(filter(str.isdigit, phone_number))
+                    db_user = await supabase.get_user_by_phone(clean_phone)
+                    debug_info["db_user"] = db_user
+                    debug_info["db_user_keys"] = list(db_user.keys()) if db_user else None
+                    debug_info["db_has_whatsapp_number"] = db_user.get('whatsapp_number') is not None if db_user else False
+                else:
+                    debug_info["db_error"] = "No phone number to search"
+            except Exception as db_error:
+                debug_info["db_error"] = str(db_error)
+            
+            # Crear mensaje de respuesta
+            response_lines = [
+                "🔍 **DEBUG LOG COMMAND**",
+                "",
+                f"**Usuario recibido:**",
+                f"- ID: {user.get('id', 'None')}",
+                f"- whatsapp_number: {user.get('whatsapp_number', 'None')}",
+                f"- phone: {user.get('phone', 'None')}",
+                f"- name: {user.get('name', 'None')}",
+                "",
+                f"**Keys disponibles:** {list(user.keys()) if user else 'None'}",
+                "",
+            ]
+            
+            if debug_info.get("db_user"):
+                db_user = debug_info["db_user"]
+                response_lines.extend([
+                    f"**Usuario en DB:**",
+                    f"- ID: {db_user.get('id', 'None')}",
+                    f"- whatsapp_number: {db_user.get('whatsapp_number', 'None')}",
+                    f"- name: {db_user.get('name', 'None')}",
+                    f"- Keys: {list(db_user.keys())}",
+                ])
+            else:
+                response_lines.append(f"**Error DB:** {debug_info.get('db_error', 'Usuario no encontrado')}")
+            
+            response_message = "\n".join(response_lines)
+            
+            # Enviar respuesta usando el número que tengamos
+            send_to = user.get('whatsapp_number') or user.get('phone') or phone_number
+            if send_to:
+                await whatsapp_cloud_service.send_text_message(
+                    to=send_to,
+                    message=response_message
+                )
+            
+            logger.info(f"🔍 LOG COMMAND - Debug info: {debug_info}")
+            
+            return {
+                "status": "success",
+                "message": "Log command processed",
+                "debug_info": debug_info
+            }
+            
+        except Exception as e:
+            logger.error(f"Error en handle_log_command: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            return {
+                "status": "error", 
+                "message": f"Error en comando log: {str(e)}"
+            }
 
 # Singleton
 message_handler = MessageHandler()

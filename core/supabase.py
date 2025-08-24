@@ -47,7 +47,10 @@ class SupabaseService:
             ).execute()
             
             if result.data:
-                return result.data[0]
+                user_found = result.data[0]
+                logger.info(f"🔍 USER FOUND in get_user_by_phone: {user_found}")
+                logger.info(f"🔍 USER has whatsapp_number: {user_found.get('whatsapp_number')}")
+                return user_found
             
             # Si no encuentra, intentar con formato @c.us (formato legacy)
             legacy_phone = f"{clean_phone}@c.us"
@@ -638,6 +641,8 @@ class SupabaseService:
         try:
             # Obtener o crear usuario
             user = await self.get_or_create_user(phone)
+            logger.info(f"🔍 USER from get_or_create_user: {user}")
+            logger.info(f"🔍 USER has whatsapp_number: {user.get('whatsapp_number') if user else 'USER IS NONE'}")
             
             # Obtener perfil
             profile = await self.get_user_profile(user["id"])
@@ -657,6 +662,8 @@ class SupabaseService:
             }
             
             # Log para debugging
+            logger.info(f"🔍 FINAL USER CONTEXT: {user_context}")
+            logger.info(f"🔍 FINAL has whatsapp_number: {user_context.get('whatsapp_number')}")
             logger.info(f"Successfully created user context for {phone}: ID={user_context['id']}, has_whatsapp_number={bool(user_context.get('whatsapp_number'))}")
             
             return user_context
