@@ -197,6 +197,13 @@ async def process_text_message(phone_number: str, message_text: str, contact_nam
         # Obtener o crear usuario en Supabase con contexto completo (incluye perfil)
         user = await supabase.get_user_with_context(phone_number)
         logger.info(f"TEXT MODULE: User obtained/created: {user.get('id', 'temp')}")
+        logger.info(f"TEXT MODULE: User structure: {user}")
+        
+        # Verificar que el usuario tenga los campos necesarios
+        if not user or not user.get('whatsapp_number'):
+            logger.error(f"TEXT MODULE: Invalid user structure: {user}")
+            await send_message_simple(phone_number, "❌ Error de configuración de usuario. Intenta enviar /register")
+            return {"status": "error", "message": "Invalid user structure"}
         
         # PIPELINE UNIFICADO: Usar el MessageHandler que ya funciona
         result = await message_handler.handle_text(message_text, user)
