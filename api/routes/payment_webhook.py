@@ -217,9 +217,9 @@ Tu upgrade a ADHD Premium está completo.
 💝 ¡Gracias por invertir en tu bienestar mental!"""
         
         # Enviar mensaje via WhatsApp
-        from services.whatsapp_cloud import whatsapp_service
+        from services.whatsapp_cloud import whatsapp_cloud_service
         
-        await whatsapp_service.send_message(
+        await whatsapp_cloud_service.send_message(
             phone_number=user['whatsapp_number'],
             message=message
         )

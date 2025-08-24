@@ -8,7 +8,6 @@ from datetime import datetime
 from loguru import logger
 
 from core.supabase import supabase
-from services.whatsapp import whatsapp_service
 from services.whatsapp_cloud import whatsapp_cloud_service
 from services.gemini import gemini_service
 from handlers.command_handler import command_handler
