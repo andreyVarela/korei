@@ -1,16 +1,50 @@
-name: Deploy to Production
+name: Build and Deploy to Production
 
 on:
   push:
     branches: [ main ]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=sha,prefix=main-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        no-cache: true
+        target: production
     
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.7
@@ -26,7 +60,7 @@ jobs:
             mv korei-app korei-app-backup-$(date +%Y%m%d-%H%M%S)
           fi
           
-          # Clone new version using GitHub Actions checkout
+          # Clone new version for docker-compose files
           curl -L https://github.com/${{ github.repository }}/archive/main.tar.gz | tar xz
           mv korei-main korei-app
           cd korei-app
@@ -51,16 +85,39 @@ jobs:
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           
           SECRET_KEY=${{ secrets.SECRET_KEY }}
-          ALLOWED_ORIGINS=["https://api.whatsapp.com","https://korei.duckdns.org"]
+          ALLOWED_ORIGINS=https://api.whatsapp.com,https://korei.duckdns.org
           TIMEZONE=America/Costa_Rica
           LOG_LEVEL=INFO
+          
+          # Docker image info
+          KOREI_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
           EOF
           
-          # Deploy with Docker
-          docker compose down || true
-          docker compose up -d --build
+          # Login to registry and pull latest image
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
           
-          # Cleanup old images
+          # Stop current containers
+          docker compose down || true
+          
+          # Pull the exact image built in this workflow
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
+          
+          # Update docker-compose to use the specific image
+          export KOREI_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}"
+          
+          # Deploy with the new image
+          docker compose up -d --force-recreate
+          
+          # Cleanup old images (keep last 3)
           docker image prune -f
           
-          echo "✅ Deploy completed successfully!"
+          # Verify deployment
+          sleep 10
+          if curl -f http://localhost/health; then
+            echo "✅ Deploy completed successfully!"
+            echo "🚀 Application is running at http://138.197.41.6"
+          else
+            echo "❌ Health check failed!"
+            docker logs korei-assistant --tail=50
+            exit 1
+          fi

@@ -2,16 +2,16 @@ version: '3.8'
 
 services:
   korei-api:
-    build:
-      context: .
-      target: production
+    # Use pre-built image from GitHub Container Registry
+    image: ${KOREI_IMAGE:-ghcr.io/avsol/korei:latest}
     container_name: korei-assistant
     restart: unless-stopped
     ports:
-      - "${PORT:-8000}:8000"
+      - "${PORT:-8000}:${PORT:-8000}"
     environment:
       - ENVIRONMENT=production
       - WORKERS=${WORKERS:-2}
+      - PORT=${PORT:-8000}
     env_file:
       - .env
     volumes:

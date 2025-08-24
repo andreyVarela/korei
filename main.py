@@ -76,11 +76,15 @@ app.include_router(debug.router, prefix="/debug", tags=["Debug"])
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    
+    # Use PORT from environment (for DigitalOcean App Platform) or fallback to settings
+    port = int(os.getenv("PORT", settings.port))
     
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=settings.port,
+        port=port,
         reload=settings.debug,
         log_level="info"
     )

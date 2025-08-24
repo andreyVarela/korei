@@ -79,12 +79,13 @@ COPY --chown=korei:korei services/ ./services/
 # Switch to non-root user
 USER korei
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Expose port
+# Expose port (dynamic for DigitalOcean App Platform)
 EXPOSE 8000
+ENV PORT=8000
 
-# Run application with Gunicorn for production
-CMD ["gunicorn", "main:app", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "120"]
+# Health check with dynamic port
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Run application with Gunicorn for production (dynamic port)
+CMD gunicorn main:app -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT} --timeout 120
