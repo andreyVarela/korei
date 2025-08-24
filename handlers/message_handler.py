@@ -91,9 +91,14 @@ class MessageHandler:
                 logger.error("Usuario None en handle_text")
                 return {"status": "error", "message": "Error de usuario"}
                 
+            # CORRECCIÓN CRÍTICA: Asegurar que el usuario tenga whatsapp_number
             if not user.get('whatsapp_number'):
-                logger.error(f"Usuario sin whatsapp_number en handle_text: {user}")
-                return {"status": "error", "message": "Error de configuración de usuario"}
+                if user.get('phone'):
+                    user['whatsapp_number'] = user['phone']  # Usar phone como fallback
+                    logger.info(f"Using phone as whatsapp_number: {user['phone']}")
+                else:
+                    logger.error(f"Usuario sin whatsapp_number ni phone: {user}")
+                    return {"status": "error", "message": "Error de configuración de usuario"}
             
             # 🔒 SEGURIDAD ULTRA ESTRICTA: SOLO /register para no registrados
             message_clean = message.strip()
