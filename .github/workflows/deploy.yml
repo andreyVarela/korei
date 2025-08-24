@@ -74,8 +74,8 @@ jobs:
           PORT=8000
           
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
-          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY || 'missing-supabase-service-key' }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_KEY || 'missing-supabase-anon-key' }}
           
           WHATSAPP_ACCESS_TOKEN=${{ secrets.WHATSAPP_CLOUD_TOKEN }}
           WHATSAPP_PHONE_NUMBER_ID=${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
