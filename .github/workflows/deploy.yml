@@ -45,6 +45,14 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         no-cache: true
         target: production
+        
+    - name: Verify image was pushed successfully
+      run: |
+        echo "🔍 Verifying image exists in registry..."
+        echo "Expected tags: ${{ steps.meta.outputs.tags }}"
+        echo "Attempting to pull main-SHA tag..."
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}
+        echo "✅ Image pull successful - build and push worked correctly"
     
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.7
@@ -129,7 +137,15 @@ jobs:
           docker image prune -f
           
           # Verify deployment
-          sleep 10
+          sleep 15
+          echo "🔍 Checking containers status..."
+          docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+          
+          # Check both direct app and nginx proxy
+          echo "🔍 Testing app direct access..."
+          curl -f http://localhost:8000/health && echo "✅ App direct access works" || echo "❌ App direct access failed"
+          
+          echo "🔍 Testing nginx proxy access..."  
           if curl -f http://localhost/health; then
             echo "✅ Deploy completed successfully!"
             echo "🚀 Application is running at http://138.197.41.6"
